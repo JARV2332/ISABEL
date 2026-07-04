@@ -1,6 +1,5 @@
 /**
- * Tipos generados para el esquema de Supabase.
- * Reemplazar con tipos auto-generados (`supabase gen types typescript`) cuando el esquema esté definido.
+ * Tipos del esquema Supabase para ISABEL.
  */
 
 export type Json =
@@ -14,26 +13,54 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      // TODO: Definir tablas cuando el esquema de Supabase esté listo
-      [key: string]: {
-        Row: Record<string, unknown>;
-        Insert: Record<string, unknown>;
-        Update: Record<string, unknown>;
+      interactions: {
+        Row: {
+          id: string;
+          module_id: string;
+          event_type: string;
+          input_text: string | null;
+          output_text: string | null;
+          audio_url: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          module_id: string;
+          event_type?: string;
+          input_text?: string | null;
+          output_text?: string | null;
+          audio_url?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["interactions"]["Insert"]>;
+      };
+      iot_events: {
+        Row: {
+          id: string;
+          action: string;
+          led_state: string | null;
+          device_connected: boolean | null;
+          payload: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          action: string;
+          led_state?: string | null;
+          device_connected?: boolean | null;
+          payload?: Json;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["iot_events"]["Insert"]>;
       };
     };
-    Views: {
-      [key: string]: {
-        Row: Record<string, unknown>;
-      };
-    };
-    Functions: {
-      [key: string]: {
-        Args: Record<string, unknown>;
-        Returns: unknown;
-      };
-    };
-    Enums: {
-      [key: string]: string;
-    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
   };
 }
+
+export type InteractionRow = Database["public"]["Tables"]["interactions"]["Row"];
+export type IotEventRow = Database["public"]["Tables"]["iot_events"]["Row"];

@@ -119,6 +119,31 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const output =
       response.output ?? response.text ?? response.message ?? "";
 
+    const { logInteraction, logIotEvent } = await import(
+      "@/lib/services/interactions"
+    );
+
+    if (moduleId === "iot") {
+      await logIotEvent(
+        String(payload.data.action ?? "unknown"),
+        response.device?.led,
+        { event: payload.event, output }
+      );
+    } else {
+      await logInteraction({
+        moduleId,
+        eventType: payload.event,
+        inputText:
+          typeof payload.data.input === "string"
+            ? payload.data.input
+            : typeof payload.data.transcript === "string"
+              ? payload.data.transcript
+              : undefined,
+        outputText: output,
+        audioUrl: response.audioUrl,
+      });
+    }
+
     return NextResponse.json({ ...response, output });
   } catch (error) {
     const message =
