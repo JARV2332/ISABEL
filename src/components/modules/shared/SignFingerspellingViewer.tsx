@@ -1,5 +1,7 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
+
 import { cn } from "@/lib/utils";
 import type { SignUnit } from "@/types/sign-language";
 
@@ -37,17 +39,20 @@ export function SignFingerspellingViewer({
       }
     >
       <div className="flex min-h-[280px] flex-col items-center justify-center bg-white p-4 sm:min-h-[360px]">
-        <img
-          key={currentSign.imageUrl}
-          src={currentSign.imageUrl}
-          alt={`Seña manual de la letra ${currentSign.label}`}
-          width={200}
-          height={240}
-          className={cn(
-            "h-auto w-auto max-h-[280px] max-w-[200px] object-contain motion-safe:transition-opacity motion-safe:duration-300",
-            isPlaying && "motion-safe:scale-105"
-          )}
-        />
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={currentSign.imageUrl}
+            src={currentSign.imageUrl}
+            alt={`Seña manual de la letra ${currentSign.label}`}
+            width={200}
+            height={240}
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: isPlaying ? 1.03 : 1 }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ duration: 0.25 }}
+            className="h-auto w-auto max-h-[280px] max-w-[200px] object-contain"
+          />
+        </AnimatePresence>
 
         <p
           className="mt-4 text-3xl font-bold tracking-widest text-[var(--module-accent)]"

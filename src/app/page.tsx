@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Ear, Mic, Eye, Accessibility } from "lucide-react";
 
 import { enabledModules } from "@/components/modules";
+import { IotPanel } from "@/components/dashboard/IotPanel";
+import { RecentInteractionsPanel } from "@/components/dashboard/RecentInteractionsPanel";
 
 const iconMap = {
   Ear,
@@ -61,6 +63,11 @@ export default function HomePage() {
           })}
         </ul>
       </section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <IotPanel />
+        <RecentInteractionsPanel />
+      </div>
     </div>
   );
 }

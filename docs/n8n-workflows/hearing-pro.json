@@ -1,0 +1,91 @@
+{
+  "name": "ISABEL - Audición PRO (OpenAI + ElevenLabs)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hearing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-hearing",
+      "name": "Webhook Audición",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": "gpt-4o-mini",
+        "prompt": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "Eres ISA, asistente de accesibilidad EDUKIDS. Responde en español, breve y cálido."
+            },
+            {
+              "role": "user",
+              "content": "={{ 'Transcripción: ' + ($json.data.transcript || $json.data.input || '') }}"
+            }
+          ]
+        }
+      },
+      "id": "openai-isa",
+      "name": "OpenAI ISA",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [440, 300],
+      "notes": "Requiere credencial OpenAI en n8n"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.elevenlabs.io/v1/text-to-speech/{{ $env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "xi-api-key", "value": "={{ $env.ELEVENLABS_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": {{ JSON.stringify($json.message?.content || $json.text || $json.data?.transcript) }},\n  \"model_id\": \"eleven_multilingual_v2\"\n}",
+        "options": { "response": { "response": { "responseFormat": "file" } } }
+      },
+      "id": "elevenlabs-tts",
+      "name": "ElevenLabs TTS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [680, 300],
+      "notes": "Subir audio a Storage o devolver base64 según tu flujo"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ JSON.stringify($('OpenAI ISA').item.json.message?.content || $json.data?.transcript || 'Hola') }},\n  \"signLanguage\": \"LSM\",\n  \"message\": \"Procesado por n8n + OpenAI + ElevenLabs\"\n}",
+        "options": {}
+      },
+      "id": "respond-hearing",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [920, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Audición": {
+      "main": [[{ "node": "OpenAI ISA", "type": "main", "index": 0 }]]
+    },
+    "OpenAI ISA": {
+      "main": [[{ "node": "ElevenLabs TTS", "type": "main", "index": 0 }]]
+    },
+    "ElevenLabs TTS": {
+      "main": [[{ "node": "Responder", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

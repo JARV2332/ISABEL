@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { enabledModules } from "@/components/modules";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -75,6 +76,10 @@ export function Header() {
             })}
           </ul>
         </nav>
+
+        <div className="hidden items-center gap-1 md:flex">
+          <ThemeToggle />
+        </div>
 
         <button
           type="button"

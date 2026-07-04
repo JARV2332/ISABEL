@@ -6,6 +6,14 @@ Importa estos workflows en n8n: **Workflows → Import from file**
 
 Workflow mínimo para probar la conexión con ISABEL (módulo Audición).
 
+## hearing-pro.json
+
+Workflow PRO con nodos OpenAI + ElevenLabs (requiere credenciales en n8n).
+
+## iot-prueba.json
+
+Webhook `/iot` para panel IoT simulado en la home.
+
 **Path del webhook:** `hearing`
 
 **Respuesta:** JSON con texto y secuencia de señas LSM.
