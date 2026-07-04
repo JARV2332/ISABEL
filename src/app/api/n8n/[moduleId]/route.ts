@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { enrichIsaResponse } from "@/lib/services/isa-orchestrator";
 import type { N8nWebhookPayload, N8nWebhookResponse } from "@/lib/services/n8n";
 import { signLanguageService } from "@/lib/services/sign-language";
 import { signSpeakService } from "@/lib/services/sign-speak";
@@ -19,7 +20,21 @@ function buildLocalMock(
       ? payload.data.input
       : typeof payload.data.transcript === "string"
         ? payload.data.transcript
-        : "contenido recibido";
+        : typeof payload.data.action === "string"
+          ? payload.data.action
+          : "contenido recibido";
+
+  if (moduleId === "iot") {
+    const action = String(payload.data.action ?? "ping");
+    return {
+      output: `Dispositivo ISABEL: acción ${action} registrada`,
+      device: {
+        connected: true,
+        led: action === "emergency" ? "red" : "green",
+        message: `IoT simulado — ${action}`,
+      },
+    };
+  }
 
   const signs = signLanguageService.textToSequence(input);
 
@@ -63,7 +78,6 @@ async function forwardToN8n(
   return (await response.json()) as N8nWebhookResponse;
 }
 
-/** Enriquece respuestas locales con Sign-Speak si hay API key configurada */
 async function enrichWithSignSpeak(
   payload: N8nWebhookPayload,
   response: N8nWebhookResponse
@@ -100,6 +114,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     let response = await forwardToN8n(moduleId, payload);
     response = await enrichWithSignSpeak(payload, response);
+    response = await enrichIsaResponse(moduleId, payload, response);
 
     const output =
       response.output ?? response.text ?? response.message ?? "";

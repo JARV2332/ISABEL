@@ -29,6 +29,14 @@ export interface N8nWebhookResponse {
     videoUrl?: string;
   }>;
   signLanguage?: "LSM" | "ASL" | "LSE";
+  /** URL o data URL de audio TTS (ElevenLabs vía n8n o servidor) */
+  audioUrl?: string;
+  /** Estado simulado de dispositivo IoT */
+  device?: {
+    connected?: boolean;
+    led?: "green" | "red" | "yellow" | "off";
+    message?: string;
+  };
 }
 
 export interface N8nService {
