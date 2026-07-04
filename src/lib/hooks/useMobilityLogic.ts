@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 
 import { useToast } from "@/components/ui/toast";
+import { useIsaAudio } from "@/lib/hooks/useIsaAudio";
 import { useModuleN8n } from "@/lib/hooks/useModuleN8n";
 import { signLanguageService } from "@/lib/services/sign-language";
 import type { ModuleStatus } from "@/types/module";
@@ -26,6 +27,7 @@ export const PICTOGRAMS = [
 export function useMobilityLogic() {
   const { toast } = useToast();
   const { submit } = useModuleN8n("mobility");
+  const { speak, isSpeaking } = useIsaAudio();
 
   const [status, setStatus] = useState<ModuleStatus>("idle");
   const [selectedPictograms, setSelectedPictograms] = useState<string[]>([]);
@@ -77,18 +79,17 @@ export function useMobilityLogic() {
       });
 
       const result = response.output ?? message;
-      const signs = signLanguageService.textToSequence(message);
+      const signs = signLanguageService.parseFromN8n(
+        response as Record<string, unknown>,
+        message
+      );
 
       setOutput(result);
       setSignSequence(signs);
       setIsaResponse(`ISA respondió en voz y lenguaje de señas: ${result}`);
       setStatus("active");
 
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        const utterance = new SpeechSynthesisUtterance(result);
-        utterance.lang = "es-ES";
-        window.speechSynthesis.speak(utterance);
-      }
+      void speak(result, response.audioUrl);
 
       toast({
         title: "Mensaje enviado",

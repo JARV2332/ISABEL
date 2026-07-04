@@ -3,31 +3,20 @@
 import { useCallback, useState } from "react";
 
 import { useToast } from "@/components/ui/toast";
+import { useIsaAudio } from "@/lib/hooks/useIsaAudio";
 import { useModuleN8n } from "@/lib/hooks/useModuleN8n";
 import type { ModuleStatus } from "@/types/module";
 
 export function useVisualLogic() {
   const { toast } = useToast();
   const { submit } = useModuleN8n("visual");
+  const { speak, isSpeaking, stop: stopSpeaking } = useIsaAudio();
 
   const [status, setStatus] = useState<ModuleStatus>("idle");
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [isaResponse, setIsaResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-
-  const speakText = useCallback((text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "es-ES";
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
-  }, []);
 
   const processText = useCallback(
     async (text: string) => {
@@ -53,7 +42,7 @@ export function useVisualLogic() {
         setOutput(result);
         setIsaResponse(`ISA respondió: ${result}`);
         setStatus("active");
-        speakText(result);
+        void speak(result, response.audioUrl);
 
         toast({
           title: "Contenido listo",
@@ -72,15 +61,8 @@ export function useVisualLogic() {
         });
       }
     },
-    [speakText, submit, toast]
+    [speak, submit, toast]
   );
-
-  const stopSpeaking = useCallback(() => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-    setIsSpeaking(false);
-  }, []);
 
   const clearSession = useCallback(() => {
     stopSpeaking();

@@ -8,3 +8,4 @@ export { useMobilityLogic, PICTOGRAMS } from "./useMobilityLogic";
 export { useSignLanguage } from "./useSignLanguage";
 export { useSignCapture } from "./useSignCapture";
 export { usePerformsAvatar } from "./usePerformsAvatar";
+export { useIsaAudio } from "./useIsaAudio";

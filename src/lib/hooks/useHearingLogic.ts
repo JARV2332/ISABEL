@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useToast } from "@/components/ui/toast";
+import { useIsaAudio } from "@/lib/hooks/useIsaAudio";
 import { useModuleN8n } from "@/lib/hooks/useModuleN8n";
 import { signLanguageService } from "@/lib/services/sign-language";
 import type { ModuleStatus } from "@/types/module";
@@ -35,6 +36,7 @@ function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
 export function useHearingLogic() {
   const { toast } = useToast();
   const { submit } = useModuleN8n("hearing");
+  const { speak, isSpeaking } = useIsaAudio();
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   const [status, setStatus] = useState<ModuleStatus>("idle");
@@ -61,20 +63,23 @@ export function useHearingLogic() {
       try {
         const spokenText = text.trim();
 
-        await submit({
+        const response = await submit({
           event: "hearing.transcribe",
           data: { transcript: spokenText, input: spokenText },
         });
 
-        // El avatar interpreta exactamente lo que se dijo en el audio
-        const signs = signLanguageService.textToSequence(spokenText);
+        const signs = signLanguageService.parseFromN8n(
+          response as Record<string, unknown>,
+          spokenText
+        );
+        const isaText = response.output ?? spokenText;
 
         setOutput(spokenText);
         setSignSequence(signs);
-        setIsaResponse(
-          `ISA interpreta en señas: ${spokenText}`
-        );
+        setIsaResponse(`ISA interpreta en señas: ${spokenText}`);
         setStatus("active");
+
+        void speak(isaText, response.audioUrl);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Error al procesar el audio";
@@ -87,7 +92,7 @@ export function useHearingLogic() {
         });
       }
     },
-    [submit, toast]
+    [submit, toast, speak]
   );
 
   const startListening = useCallback(() => {
@@ -158,6 +163,7 @@ export function useHearingLogic() {
     isaResponse,
     error,
     isListening,
+    isSpeaking,
     startListening,
     stopListening,
     clearSession,

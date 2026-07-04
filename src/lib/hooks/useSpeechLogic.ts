@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useToast } from "@/components/ui/toast";
+import { useIsaAudio } from "@/lib/hooks/useIsaAudio";
 import { useModuleN8n } from "@/lib/hooks/useModuleN8n";
 import type { ModuleStatus } from "@/types/module";
 
@@ -33,6 +34,7 @@ function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
 export function useSpeechLogic() {
   const { toast } = useToast();
   const { submit } = useModuleN8n("speech");
+  const { speak, isSpeaking, stop: stopSpeaking } = useIsaAudio();
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const transcriptRef = useRef("");
 
@@ -65,11 +67,7 @@ export function useSpeechLogic() {
         setIsaResponse(`ISA respondió: ${result}`);
         setStatus("active");
 
-        if (typeof window !== "undefined" && "speechSynthesis" in window) {
-          const utterance = new SpeechSynthesisUtterance(result);
-          utterance.lang = "es-ES";
-          window.speechSynthesis.speak(utterance);
-        }
+        void speak(result, response.audioUrl);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Error al procesar el habla";
@@ -82,7 +80,7 @@ export function useSpeechLogic() {
         });
       }
     },
-    [submit, toast]
+    [submit, toast, speak]
   );
 
   const startListening = useCallback(() => {
@@ -161,8 +159,10 @@ export function useSpeechLogic() {
     isaResponse,
     error,
     isListening,
+    isSpeaking,
     startListening,
     stopListening,
+    stopSpeaking,
     submitText,
     clearSession,
   };
