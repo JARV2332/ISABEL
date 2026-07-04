@@ -35,6 +35,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["interactions"]["Insert"]>;
+        Relationships: [];
       };
       iot_events: {
         Row: {
@@ -54,11 +55,21 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["iot_events"]["Insert"]>;
+        Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
 }
 

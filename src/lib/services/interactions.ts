@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import type { Database, InteractionRow, IotEventRow } from "@/types/database";
+import type { Database, InteractionRow, IotEventRow, Json } from "@/types/database";
 
 export type TypedSupabaseClient = SupabaseClient<Database>;
 
@@ -68,7 +68,7 @@ export async function logInteraction(
       input_text: input.inputText ?? null,
       output_text: input.outputText ?? null,
       audio_url: input.audioUrl ?? null,
-      metadata: input.metadata ?? {},
+      metadata: (input.metadata ?? {}) as Json,
     });
   } catch {
     /* no bloquear flujo principal */
@@ -88,7 +88,7 @@ export async function logIotEvent(
       action,
       led_state: ledState ?? null,
       device_connected: true,
-      payload: payload ?? {},
+      payload: (payload ?? {}) as Json,
     });
   } catch {
     /* no bloquear */

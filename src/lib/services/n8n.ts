@@ -19,6 +19,7 @@ export interface N8nWebhookResponse {
   text?: string;
   audioUrl?: string;
   message?: string;
+  /** URL o data URL de audio TTS (ElevenLabs vía n8n o servidor) */
   /** URL de video del avatar firmando (servicio externo) */
   avatarVideoUrl?: string;
   /** Secuencia de señas LSM procesada por n8n */
@@ -29,8 +30,6 @@ export interface N8nWebhookResponse {
     videoUrl?: string;
   }>;
   signLanguage?: "LSM" | "ASL" | "LSE";
-  /** URL o data URL de audio TTS (ElevenLabs vía n8n o servidor) */
-  audioUrl?: string;
   /** Estado simulado de dispositivo IoT */
   device?: {
     connected?: boolean;
