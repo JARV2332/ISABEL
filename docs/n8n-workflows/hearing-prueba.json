@@ -1,0 +1,111 @@
+{
+  "name": "ISABEL - Audición (prueba)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hearing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-hearing",
+      "name": "Webhook Audición",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [260, 300],
+      "webhookId": "isabel-hearing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "sign-capture-check",
+              "leftValue": "={{ $json.event }}",
+              "rightValue": "hearing.sign-capture",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-sign-capture",
+      "name": "¿Es captura de seña?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": \"Seña reconocida (modo prueba): hola\",\n  \"signLanguage\": \"LSM\",\n  \"signSequence\": [\n    { \"gloss\": \"HOLA\", \"label\": \"Hola\", \"icon\": \"👋\" }\n  ]\n}",
+        "options": {}
+      },
+      "id": "respond-sign-capture",
+      "name": "Respuesta Sign-Capture",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [720, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ JSON.stringify($json.data.transcript || $json.data.input || 'Hola desde n8n') }},\n  \"signLanguage\": \"LSM\",\n  \"signSequence\": [\n    { \"gloss\": \"HOLA\", \"label\": \"Hola\", \"icon\": \"👋\" },\n    { \"gloss\": \"GRACIAS\", \"label\": \"Gracias\", \"icon\": \"🙏\" }\n  ]\n}",
+        "options": {}
+      },
+      "id": "respond-transcribe",
+      "name": "Respuesta Transcripción",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [720, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Audición": {
+      "main": [
+        [
+          {
+            "node": "¿Es captura de seña?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Es captura de seña?": {
+      "main": [
+        [
+          {
+            "node": "Respuesta Sign-Capture",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respuesta Transcripción",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-07-04T00:00:00.000Z",
+  "versionId": "1"
+}

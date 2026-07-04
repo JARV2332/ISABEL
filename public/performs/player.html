@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ISABEL — Avatar Performs</title>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #0b1f3a;
+      }
+      #performs-root {
+        width: 100%;
+        height: 100%;
+      }
+      #loading,
+      #error {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        color: #e8edf4;
+        font-family: system-ui, sans-serif;
+        font-size: 0.875rem;
+        background: #0b1f3a;
+        z-index: 10;
+        padding: 1rem;
+        text-align: center;
+      }
+      #error {
+        color: #fca5a5;
+        display: none;
+      }
+    </style>
+    <!-- Rutas relativas de Performs (data/, animaciones, diccionarios) deben apuntar a UPF -->
+    <base href="https://performs.gti.upf.edu/" />
+    <!-- Requerido: Performs importa "three" como módulo bare specifier -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://performs.gti.upf.edu/external/three/build/three.module.js",
+          "three/addons/": "https://performs.gti.upf.edu/external/three/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="loading" role="status">Cargando avatar 3D…</div>
+    <div id="error" role="alert">
+      <p id="error-msg">No se pudo cargar el avatar.</p>
+    </div>
+    <div id="performs-root" aria-label="Avatar 3D de lenguaje de señas"></div>
+
+    <script type="module">
+      const AVATAR_URL =
+        "https://resources.gti.upf.edu/3Dcharacters/ReadyEva/ReadyEva.glb";
+      const CONFIG_URL =
+        "https://resources.gti.upf.edu/3Dcharacters/ReadyEva/ReadyEva.json";
+
+      const root = document.getElementById("performs-root");
+      const loading = document.getElementById("loading");
+      const errorBox = document.getElementById("error");
+      const errorMsg = document.getElementById("error-msg");
+
+      function notifyParent(type, extra = {}) {
+        window.parent.postMessage(
+          { source: "isabel-performs", type, ...extra },
+          "*"
+        );
+      }
+
+      function showError(message) {
+        loading.hidden = true;
+        errorMsg.textContent = message;
+        errorBox.style.display = "flex";
+        notifyParent("ERROR", { message });
+      }
+
+      const LOAD_TIMEOUT_MS = 25000;
+      const timeoutId = window.setTimeout(() => {
+        showError("Tiempo de espera agotado al cargar el avatar 3D.");
+      }, LOAD_TIMEOUT_MS);
+
+      try {
+        const { Performs } = await import(
+          "https://performs.gti.upf.edu/build/performs.nogui.module.js"
+        );
+
+        const performs = new Performs();
+
+        performs.init({
+          controls: false,
+          restrictView: true,
+          background: "open",
+          color: "#0b1f3a",
+          applyIdle: true,
+          autoplay: false,
+          avatar: AVATAR_URL,
+          config: CONFIG_URL,
+          onReady: () => {
+            window.clearTimeout(timeoutId);
+            performs.appendCanvasTo(root);
+            performs.changeCameraMode(true);
+            loading.hidden = true;
+            notifyParent("READY");
+          },
+        });
+
+        function playBml(bmlPayload) {
+          if (!bmlPayload?.behaviours?.length) return;
+
+          performs.setConfiguration(
+            {
+              scripts: [
+                {
+                  type: "bml",
+                  data: { behaviours: bmlPayload.behaviours },
+                },
+              ],
+              applyIdle: true,
+              autoplay: true,
+            },
+            () => performs.changePlayState(true)
+          );
+        }
+
+        window.addEventListener("message", (event) => {
+          const data = event.data;
+          if (!data || data.source !== "isabel-parent") return;
+
+          if (data.type === "PLAY_BML") {
+            playBml(data.payload);
+          }
+        });
+      } catch (err) {
+        window.clearTimeout(timeoutId);
+        showError(
+          err instanceof Error ? err.message : "Error al iniciar Performs"
+        );
+      }
+    </script>
+  </body>
+</html>

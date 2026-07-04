@@ -1,0 +1,52 @@
+{
+  "name": "ISABEL - Movilidad (pictogramas → señas)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mobility",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-mobility",
+      "name": "Webhook Movilidad",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [260, 300],
+      "webhookId": "isabel-mobility"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ JSON.stringify($json.data.input || 'Mensaje recibido') }},\n  \"signLanguage\": \"LSM\",\n  \"signSequence\": [\n    { \"gloss\": \"HOLA\", \"label\": \"Hola\", \"icon\": \"👋\" },\n    { \"gloss\": \"AYUDA\", \"label\": \"Ayuda\", \"icon\": \"🆘\" }\n  ]\n}",
+        "options": {}
+      },
+      "id": "respond-mobility",
+      "name": "Respuesta con Señas",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [520, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Movilidad": {
+      "main": [
+        [
+          {
+            "node": "Respuesta con Señas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-07-04T00:00:00.000Z",
+  "versionId": "1"
+}
