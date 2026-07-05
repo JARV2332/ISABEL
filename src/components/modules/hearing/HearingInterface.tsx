@@ -85,7 +85,21 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
 
   const handleHandwritingRecognized = useCallback(
     (text: string) => {
-      mic.appendManualText(text);
+      const current = mic.transcript.trim();
+      const recognized = text.trim();
+
+      if (!recognized) return;
+
+      if (
+        current &&
+        recognized.toLowerCase().startsWith(current.toLowerCase())
+      ) {
+        const suffix = recognized.slice(current.length).trim();
+        if (suffix) mic.appendManualText(suffix);
+        return;
+      }
+
+      mic.appendManualText(recognized);
     },
     [mic]
   );
@@ -315,6 +329,7 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
             ) : (
               <HandwritingTextInput
                 onTextRecognized={handleHandwritingRecognized}
+                phraseContext={mic.transcript}
                 disabled={mic.isProcessing || mic.isListening}
               />
             )}

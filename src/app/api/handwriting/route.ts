@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as {
       image?: string;
       format?: "jpeg" | "png";
+      context?: string;
     };
 
     if (!body.image?.trim()) {
@@ -32,7 +33,8 @@ export async function POST(request: NextRequest) {
 
     const { text, provider } = await recognizeHandwriting(
       base64,
-      body.format ?? "png"
+      body.format ?? "png",
+      body.context?.trim() || undefined
     );
 
     if (!text) {

@@ -19,7 +19,6 @@ import { enhanceHandwritingImage } from "@/lib/handwriting-preprocess";
 import { getModuleTheme } from "@/lib/module-themes";
 import { cn } from "@/lib/utils";
 
-const DEBOUNCE_MS = 1500;
 const SCAN_INTERVAL_MS = 2500;
 const STROKE_COLOR = "#000000";
 const STROKE_WIDTH = 7;
@@ -44,7 +43,6 @@ export function SmartBoard({
 }: SmartBoardProps) {
   const theme = getModuleTheme("speech");
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scanTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasStrokesRef = useRef(false);
 
@@ -104,14 +102,10 @@ export function SmartBoard({
 
   const handleCanvasChange = useCallback(() => {
     hasStrokesRef.current = true;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      void exportAndRecognize();
-    }, DEBOUNCE_MS);
-  }, [exportAndRecognize]);
+    setError(null);
+  }, []);
 
   const handleClear = useCallback(async () => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     await canvasRef.current?.clearCanvas();
     hasStrokesRef.current = false;
     setRecognizedText(null);
@@ -119,7 +113,6 @@ export function SmartBoard({
   }, []);
 
   const handleSpeak = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     void exportAndRecognize();
   }, [exportAndRecognize]);
 
@@ -147,12 +140,6 @@ export function SmartBoard({
       if (scanTimerRef.current) clearInterval(scanTimerRef.current);
     };
   }, [scanMode]);
-
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === " " || event.key === "Enter") {
@@ -183,8 +170,8 @@ export function SmartBoard({
           Pizarra inteligente
         </h2>
         <p className="text-lg leading-relaxed text-[var(--module-muted-fg)]">
-          Escribe con el dedo o lápiz. Al dejar de trazar 1.5 s, ISA lee tu
-          mensaje automáticamente.
+          Escribe tu frase completa con el dedo o lápiz. Cuando termines, toca
+          «Hablar» para que ISA la lea.
         </p>
       </div>
 

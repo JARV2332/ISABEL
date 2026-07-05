@@ -17,12 +17,14 @@ const CANVAS_COLOR = "#f7f3eb";
 
 interface HandwritingTextInputProps {
   onTextRecognized: (text: string) => void;
+  phraseContext?: string;
   disabled?: boolean;
   className?: string;
 }
 
 export function HandwritingTextInput({
   onTextRecognized,
+  phraseContext = "",
   disabled = false,
   className,
 }: HandwritingTextInputProps) {
@@ -53,7 +55,11 @@ export function HandwritingTextInput({
       const response = await fetch("/api/handwriting", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: enhanced, format: "png" }),
+        body: JSON.stringify({
+          image: enhanced,
+          format: "png",
+          context: phraseContext.trim() || undefined,
+        }),
       });
 
       const data = (await response.json()) as {
@@ -85,7 +91,7 @@ export function HandwritingTextInput({
     } finally {
       setIsRecognizing(false);
     }
-  }, [disabled, handleClear, onTextRecognized]);
+  }, [disabled, handleClear, onTextRecognized, phraseContext]);
 
   useEffect(() => {
     return () => {
@@ -100,9 +106,15 @@ export function HandwritingTextInput({
       aria-label="Escritura a mano"
     >
       <p className="text-base leading-relaxed text-[var(--module-muted-fg)]">
-        Escribe con el dedo o un lápiz en la pizarra. Toca «Agregar texto» para
-        sumarlo a tu mensaje.
+        Escribe palabras o frases con el dedo o un lápiz. Toca «Agregar texto»
+        cuando termines cada trazo para sumarlo a tu mensaje.
       </p>
+
+      {phraseContext.trim() && (
+        <p className="text-sm font-medium text-[var(--module-muted-fg)]" role="status">
+          Frase hasta ahora: «{phraseContext.trim()}»
+        </p>
+      )}
 
       <div
         className={cn(
