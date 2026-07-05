@@ -1,9 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useToast } from "@/components/ui/toast";
-import { GUATEMALA_CENTER } from "@/lib/geo/places-utils";
+import {
+  GUATEMALA_CENTER,
+  SEARCH_RADIUS_METERS,
+  SEARCH_RADIUS_KM,
+} from "@/lib/geo/places-utils";
 import type {
   AccessibilityStatus,
   AccessiblePlace,
@@ -80,6 +84,8 @@ export function useAccessiblePlaces() {
   const [isSearching, setIsSearching] = useState(false);
   const [inGuatemala, setInGuatemala] = useState(true);
   const [locationLabel, setLocationLabel] = useState("Guatemala");
+  const [searchRadiusKm, setSearchRadiusKm] = useState(SEARCH_RADIUS_KM);
+  const hasAutoLocated = useRef(false);
 
   const searchNearby = useCallback(
     async (lat: number, lng: number, cat: PlaceCategory | "all") => {
@@ -89,13 +95,16 @@ export function useAccessiblePlaces() {
           lat: String(lat),
           lng: String(lng),
           category: cat,
-          radius: "15000",
+          radius: String(SEARCH_RADIUS_METERS),
         });
-        const response = await fetch(`/api/places/nearby?${params}`);
+        const response = await fetch(`/api/places/nearby?${params}`, {
+          cache: "no-store",
+        });
         const data = (await response.json()) as {
           places?: AccessiblePlace[];
           inGuatemala?: boolean;
           locationLabel?: string;
+          searchRadiusKm?: number;
           error?: string;
         };
 
@@ -107,6 +116,7 @@ export function useAccessiblePlaces() {
         setPlaces(merged);
         setInGuatemala(data.inGuatemala ?? true);
         setLocationLabel(data.locationLabel ?? "Guatemala");
+        setSearchRadiusKm(data.searchRadiusKm ?? SEARCH_RADIUS_KM);
       } catch (err) {
         toast({
           title: "Búsqueda",
@@ -176,7 +186,13 @@ export function useAccessiblePlaces() {
     if (location) {
       void searchNearby(location.latitude, location.longitude, category);
     }
-  }, [category]); // eslint-disable-line react-hooks/exhaustive-deps -- re-buscar al cambiar categoría
+  }, [category]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (hasAutoLocated.current) return;
+    hasAutoLocated.current = true;
+    void detectLocation();
+  }, [detectLocation]);
 
   const submitReport = useCallback(
     async (report: PlaceReportInput) => {
@@ -234,6 +250,7 @@ export function useAccessiblePlaces() {
     setSelectedPlace,
     inGuatemala,
     locationLabel,
+    searchRadiusKm,
     detectLocation,
     searchNearby,
     submitReport,

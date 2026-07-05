@@ -17,6 +17,8 @@ interface TabGroupProps<T extends string> {
   onChange: (value: T) => void;
   ariaLabel: string;
   className?: string;
+  /** En móvil apila las pestañas verticalmente */
+  stackOnMobile?: boolean;
 }
 
 export function TabGroup<T extends string>({
@@ -25,13 +27,15 @@ export function TabGroup<T extends string>({
   onChange,
   ariaLabel,
   className,
+  stackOnMobile = false,
 }: TabGroupProps<T>) {
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
       className={cn(
-        "flex gap-3 rounded-[2rem] border-2 border-border/60 bg-muted/50 p-2 shadow-inner",
+        "flex gap-2 rounded-[2rem] border-2 border-border/60 bg-muted/50 p-2 shadow-inner sm:gap-3",
+        stackOnMobile ? "flex-col sm:flex-row" : "flex-row",
         className
       )}
     >
@@ -48,16 +52,18 @@ export function TabGroup<T extends string>({
             title={tooltip}
             onClick={() => onChange(id)}
             className={cn(
-              "human-press flex min-h-16 flex-1 items-center justify-center gap-2.5",
-              "rounded-[1.5rem] px-4 py-3 text-center text-base font-bold leading-snug transition-all duration-150 sm:px-5 sm:text-lg",
+              "human-press flex min-h-14 w-full flex-1 items-center justify-center gap-2",
+              "rounded-[1.25rem] px-3 py-2.5 text-center text-sm font-bold leading-snug transition-all duration-150 sm:min-h-16 sm:gap-2.5 sm:rounded-[1.5rem] sm:px-5 sm:text-lg",
               "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
               selected
                 ? "bg-[image:var(--module-gradient,var(--human-primary-gradient))] text-primary-foreground shadow-lg dark:text-white"
                 : "bg-transparent text-muted-foreground hover:bg-card/80 hover:text-foreground"
             )}
           >
-            {Icon && <Icon className="size-6 shrink-0" aria-hidden="true" />}
-            <span>{label}</span>
+            {Icon && (
+              <Icon className="size-5 shrink-0 sm:size-6" aria-hidden="true" />
+            )}
+            <span className="truncate">{label}</span>
           </button>
         );
       })}

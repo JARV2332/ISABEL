@@ -1,7 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { findNearbyAccessiblePlaces } from "@/lib/services/accessible-places";
+import { SEARCH_RADIUS_METERS } from "@/lib/geo/places-utils";
 import type { PlaceCategory } from "@/types/accessible-places";
+
+export const dynamic = "force-dynamic";
 
 const VALID_CATEGORIES = new Set<string>([
   "all",
@@ -13,14 +16,14 @@ const VALID_CATEGORIES = new Set<string>([
   "accessible_parking",
 ]);
 
-/** GET /api/places/nearby?lat=&lng=&category=hospital&radius=12000 */
+/** GET /api/places/nearby?lat=&lng=&category=hospital&radius=15000 */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const lat = Number(searchParams.get("lat"));
     const lng = Number(searchParams.get("lng"));
     const category = (searchParams.get("category") ?? "all") as PlaceCategory | "all";
-    const radius = Number(searchParams.get("radius") ?? "12000");
+    const radius = Number(searchParams.get("radius") ?? String(SEARCH_RADIUS_METERS));
 
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
       return NextResponse.json(
@@ -37,7 +40,7 @@ export async function GET(request: NextRequest) {
       latitude: lat,
       longitude: lng,
       category,
-      radiusMeters: Number.isFinite(radius) ? radius : 12000,
+      radiusMeters: Number.isFinite(radius) ? radius : SEARCH_RADIUS_METERS,
     });
 
     return NextResponse.json(result);

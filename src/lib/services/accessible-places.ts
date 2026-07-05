@@ -1,5 +1,9 @@
 import { filterSeedByCategory, GUATEMALA_SEED_PLACES } from "@/lib/data/guatemala-places-seed";
-import { haversineMeters, isInGuatemala } from "@/lib/geo/places-utils";
+import {
+  haversineMeters,
+  isInGuatemala,
+  SEARCH_RADIUS_METERS,
+} from "@/lib/geo/places-utils";
 import { fetchOsmNearby } from "@/lib/services/overpass-places";
 import {
   createSupabaseClient,
@@ -50,10 +54,27 @@ function mergeStatus(
 
 async function fetchReportVotes(
   placeIds: string[]
-): Promise<Map<string, { accessible: number; partial: number; inaccessible: number; count: number; lastNote?: string }>> {
+): Promise<
+  Map<
+    string,
+    {
+      accessible: number;
+      partial: number;
+      inaccessible: number;
+      count: number;
+      lastNote?: string;
+    }
+  >
+> {
   const map = new Map<
     string,
-    { accessible: number; partial: number; inaccessible: number; count: number; lastNote?: string }
+    {
+      accessible: number;
+      partial: number;
+      inaccessible: number;
+      count: number;
+      lastNote?: string;
+    }
   >();
 
   if (!isSupabaseConfigured() || placeIds.length === 0) return map;
@@ -90,14 +111,34 @@ function dedupePlaces(places: AccessiblePlace[]): AccessiblePlace[] {
   const seen = new Map<string, AccessiblePlace>();
 
   for (const place of places) {
-    const key = `${place.name.toLowerCase().slice(0, 30)}-${place.latitude.toFixed(3)}-${place.longitude.toFixed(3)}`;
+    const key = `${place.name.toLowerCase().slice(0, 40)}-${place.latitude.toFixed(4)}-${place.longitude.toFixed(4)}`;
     const existing = seen.get(key);
-    if (!existing || rankStatus(place.accessibility) > rankStatus(existing.accessibility)) {
+    if (
+      !existing ||
+      rankStatus(place.accessibility) > rankStatus(existing.accessibility)
+    ) {
       seen.set(key, place);
     }
   }
 
   return Array.from(seen.values());
+}
+
+function seedWithinRadius(
+  latitude: number,
+  longitude: number,
+  category: PlaceCategory | "all",
+  radiusMeters: number
+): AccessiblePlace[] {
+  const pool =
+    category === "all" ? GUATEMALA_SEED_PLACES : filterSeedByCategory(category);
+
+  return pool
+    .map((p) => ({
+      ...p,
+      distanceMeters: haversineMeters(latitude, longitude, p.latitude, p.longitude),
+    }))
+    .filter((p) => (p.distanceMeters ?? 0) <= radiusMeters);
 }
 
 export async function findNearbyAccessiblePlaces(options: {
@@ -110,38 +151,38 @@ export async function findNearbyAccessiblePlaces(options: {
   places: AccessiblePlace[];
   inGuatemala: boolean;
   locationLabel: string;
+  searchRadiusMeters: number;
+  searchRadiusKm: number;
 }> {
-  const { latitude, longitude, category, radiusMeters = 12000, includeOsm = true } = options;
+  const {
+    latitude,
+    longitude,
+    category,
+    radiusMeters = SEARCH_RADIUS_METERS,
+    includeOsm = true,
+  } = options;
+
   const inGt = isInGuatemala(latitude, longitude);
 
-  const categories: PlaceCategory[] =
-    category === "all"
-      ? ["hospital", "restaurant", "bank", "mall", "accessible_toilet", "accessible_parking"]
-      : [category];
+  let combined: AccessiblePlace[] = seedWithinRadius(
+    latitude,
+    longitude,
+    category,
+    radiusMeters
+  );
 
-  let combined: AccessiblePlace[] = [];
-
-  for (const cat of categories) {
-    const seed = filterSeedByCategory(cat).map((p) => ({
-      ...p,
-      distanceMeters: haversineMeters(latitude, longitude, p.latitude, p.longitude),
-    }));
-
-    combined.push(...seed.filter((p) => (p.distanceMeters ?? 0) <= radiusMeters));
-
-    if (includeOsm) {
-      try {
-        const osm = await fetchOsmNearby(latitude, longitude, cat, radiusMeters);
-        combined.push(...osm);
-      } catch {
-        /* OSM opcional */
-      }
+  if (includeOsm) {
+    try {
+      const osm = await fetchOsmNearby(latitude, longitude, category, radiusMeters);
+      combined.push(...osm);
+    } catch {
+      /* OSM opcional */
     }
   }
 
-  combined = dedupePlaces(combined).sort(
-    (a, b) => (a.distanceMeters ?? 0) - (b.distanceMeters ?? 0)
-  );
+  combined = dedupePlaces(combined)
+    .filter((p) => (p.distanceMeters ?? Infinity) <= radiusMeters)
+    .sort((a, b) => (a.distanceMeters ?? 0) - (b.distanceMeters ?? 0));
 
   const ids = combined.map((p) => p.id);
   const votes = await fetchReportVotes(ids);
@@ -159,9 +200,11 @@ export async function findNearbyAccessiblePlaces(options: {
   });
 
   return {
-    places: combined.slice(0, 40),
+    places: combined.slice(0, 50),
     inGuatemala: inGt,
-    locationLabel: inGt ? "Guatemala" : "Fuera de Guatemala (mostrando referencia)",
+    locationLabel: inGt ? "Guatemala" : "Ubicación detectada",
+    searchRadiusMeters: radiusMeters,
+    searchRadiusKm: Math.round(radiusMeters / 1000),
   };
 }
 

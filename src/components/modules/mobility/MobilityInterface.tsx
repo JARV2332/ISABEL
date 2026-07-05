@@ -80,7 +80,8 @@ export function MobilityInterface({ module = mobilityModule }: ModuleViewProps) 
         value={activeTab}
         onChange={setActiveTab}
         ariaLabel="Secciones del módulo Movilidad"
-        className="mb-8"
+        stackOnMobile
+        className="mb-6 sm:mb-8"
       />
 
       {activeTab === "places" ? (

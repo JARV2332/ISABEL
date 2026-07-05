@@ -59,7 +59,7 @@ export function ModuleShell({
       aria-labelledby="module-title"
       data-high-contrast="true"
       className={cn(
-        "relative overflow-hidden rounded-[2.5rem] border-2 p-6 sm:p-10",
+        "relative overflow-hidden rounded-[2rem] border-2 p-4 sm:rounded-[2.5rem] sm:p-6 md:p-10",
         "text-[var(--module-fg)] human-surface shadow-2xl drop-shadow-xl",
         "dark:[--module-fg:#f8fafc] dark:[--module-muted-fg:#cbd5e1]"
       )}

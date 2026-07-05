@@ -1,5 +1,9 @@
 /** Utilidades geográficas para lugares accesibles. */
 
+/** Radio de búsqueda: 15 km a la redonda desde la ubicación del usuario. */
+export const SEARCH_RADIUS_METERS = 15_000;
+export const SEARCH_RADIUS_KM = 15;
+
 export function haversineMeters(
   lat1: number,
   lon1: number,
