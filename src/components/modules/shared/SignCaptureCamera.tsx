@@ -1,133 +1,238 @@
 "use client";
 
-import { Camera, CameraOff, Scan } from "lucide-react";
+import { Camera, CameraOff, Hand, Scan, Sparkles } from "lucide-react";
 import type { RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Panel } from "@/components/ui/panel";
 import { cn } from "@/lib/utils";
 
 interface SignCaptureCameraProps {
   videoRef: RefObject<HTMLVideoElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
   isCameraActive: boolean;
-  isProcessing: boolean;
+  isHandTracking: boolean;
+  isModelLoading: boolean;
+  handsDetected: number;
+  currentLetter: string | null;
+  currentConfidence: number;
+  signBuffer: string;
   signTranscript: string;
+  isProcessing: boolean;
   onStartCamera: () => void;
   onStopCamera: () => void;
   onCaptureSign: () => void;
+  onFinalizeBuffer: () => void;
   className?: string;
 }
 
 export function SignCaptureCamera({
   videoRef,
+  canvasRef,
   isCameraActive,
-  isProcessing,
+  isHandTracking,
+  isModelLoading,
+  handsDetected,
+  currentLetter,
+  currentConfidence,
+  signBuffer,
   signTranscript,
+  isProcessing,
   onStartCamera,
   onStopCamera,
   onCaptureSign,
+  onFinalizeBuffer,
   className,
 }: SignCaptureCameraProps) {
   return (
     <section
       aria-labelledby="sign-capture-heading"
-      className={cn("space-y-4", className)}
+      className={cn("space-y-6", className)}
     >
-      <h2
-        id="sign-capture-heading"
-        className="flex items-center gap-2 text-lg font-semibold text-[var(--module-fg)]"
-      >
-        <Camera className="size-5" aria-hidden="true" />
-        Entrada: Cámara (Señas → Texto)
-      </h2>
+      <div>
+        <h2
+          id="sign-capture-heading"
+          className="mb-3 flex items-center gap-3 text-2xl font-extrabold text-[var(--module-fg)]"
+        >
+          <span className="flex size-12 items-center justify-center rounded-2xl bg-accent/20 text-[var(--module-accent)]">
+            <Hand className="size-6" aria-hidden="true" />
+          </span>
+          Intérprete LSM en vivo
+        </h2>
+        <p className="text-lg leading-relaxed text-[var(--module-muted-fg)]">
+          Mantén la mano a 40–60 cm de la cámara, dedos hacia arriba y bien
+          iluminados. Las puntas cian = dedos detectados. Espera ver la letra
+          con <strong>68%+</strong> antes de cambiar de pose.
+        </p>
+        <details className="rounded-[1.5rem] border-2 border-border/60 bg-muted/40 px-5 py-3 text-base">
+          <summary className="cursor-pointer font-bold text-[var(--module-fg)]">
+            Guía rápida de letras
+          </summary>
+          <ul className="mt-3 space-y-1.5 text-[var(--module-muted-fg)]">
+            <li><strong>A</strong> — Puño cerrado, pulgar al costado</li>
+            <li><strong>B</strong> — 4 dedos rectos juntos, pulgar doblado</li>
+            <li><strong>L</strong> — Pulgar e índice en forma de L</li>
+            <li><strong>O</strong> — Pulgar e índice formando círculo</li>
+            <li><strong>V</strong> — Índice y medio separados (V)</li>
+            <li><strong>U</strong> — Índice y medio juntos</li>
+            <li><strong>I</strong> — Solo meñique arriba</li>
+            <li><strong>Y</strong> — Pulgar y meñique (🤙)</li>
+            <li><strong>S</strong> — Puño con pulgar sobre los dedos</li>
+          </ul>
+        </details>
+      </div>
 
-      <p className="text-sm text-[var(--module-muted-fg)]">
-        Activa la cámara, realiza una seña frente a ella y captura el gesto.
-        ISA convertirá tus señas en texto (requiere n8n + Sign-Speak configurados).
-      </p>
-
-      <div className="relative overflow-hidden rounded-xl border-2 border-[var(--module-border)] bg-black">
+      <div className="relative overflow-hidden rounded-[2rem] border-2 border-[var(--module-border)] bg-black shadow-2xl">
         <video
           ref={videoRef}
           muted
           playsInline
           autoPlay
           className={cn(
-            "aspect-video w-full object-cover",
-            !isCameraActive && "opacity-30"
+            "aspect-video w-full scale-x-[-1] object-cover",
+            !isCameraActive && "opacity-20"
           )}
-          aria-label="Vista previa de la cámara para captura de señas"
+          aria-hidden="true"
         />
+        <canvas
+          ref={canvasRef}
+          className={cn(
+            "pointer-events-none absolute inset-0 aspect-video w-full scale-x-[-1] object-cover",
+            !isCameraActive && "opacity-0"
+          )}
+          aria-hidden="true"
+        />
+
         {!isCameraActive && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="rounded-lg bg-black/70 px-4 py-2 text-sm text-white">
-              Cámara apagada — presiona «Activar cámara»
+          <div className="absolute inset-0 flex items-center justify-center bg-isabel-deep-950/80">
+            <p className="rounded-[1.5rem] bg-black/60 px-6 py-4 text-lg font-semibold text-white">
+              Toca «Activar intérprete» para encender la cámara
             </p>
           </div>
         )}
+
+        {isModelLoading && (
+          <div className="absolute inset-x-0 top-4 flex justify-center">
+            <span className="rounded-full bg-accent/90 px-4 py-2 text-sm font-bold text-isabel-deep-950">
+              Cargando detector de manos…
+            </span>
+          </div>
+        )}
+
+        {isCameraActive && isHandTracking && (
+          <div className="absolute inset-x-0 bottom-4 flex flex-wrap justify-center gap-2 px-4">
+            <span
+              className={cn(
+                "rounded-full px-4 py-2 text-sm font-bold",
+                handsDetected > 0
+                  ? "bg-emerald-500/90 text-white"
+                  : "bg-amber-500/90 text-isabel-deep-950"
+              )}
+            >
+              {handsDetected > 0
+                ? `${handsDetected} mano${handsDetected > 1 ? "s" : ""} detectada${handsDetected > 1 ? "s" : ""}`
+                : "Busca tu mano en el cuadro"}
+            </span>
+            {currentLetter && (
+              <span className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-isabel-deep-950">
+                Letra: {currentLetter} ({currentConfidence}%)
+              </span>
+            )}
+            {!currentLetter && currentConfidence > 0 && (
+              <span className="rounded-full bg-amber-500/90 px-4 py-2 text-sm font-bold text-isabel-deep-950">
+                Ajusta la pose ({currentConfidence}%)
+              </span>
+            )}
+          </div>
+        )}
+
         {isProcessing && (
           <div
-            className="absolute inset-0 flex items-center justify-center bg-black/50"
+            className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm"
             aria-busy="true"
-            aria-label="Procesando seña"
+            aria-label="Interpretando seña"
           >
-            <p className="rounded-lg bg-[var(--module-accent)] px-4 py-2 text-sm font-semibold text-[var(--module-accent-fg)]">
-              Reconociendo seña…
+            <p className="rounded-[1.5rem] bg-accent px-6 py-4 text-lg font-bold text-isabel-deep-950">
+              ISA interpretando…
             </p>
           </div>
         )}
       </div>
 
       <div
-        className="flex flex-wrap gap-3"
+        className="flex flex-col gap-4 sm:flex-row sm:flex-wrap"
         role="group"
-        aria-label="Controles de cámara"
+        aria-label="Controles del intérprete"
       >
         <Button
           type="button"
+          variant="accent"
+          size="lg"
+          className="flex-1"
           onClick={isCameraActive ? onStopCamera : onStartCamera}
           aria-pressed={isCameraActive}
-          aria-label={isCameraActive ? "Apagar cámara" : "Activar cámara"}
-          className="min-h-11 bg-[var(--module-accent)] text-[var(--module-accent-fg)]"
+          aria-label={isCameraActive ? "Apagar intérprete" : "Activar intérprete"}
         >
           {isCameraActive ? (
             <>
               <CameraOff aria-hidden="true" />
-              Apagar cámara
+              Apagar intérprete
             </>
           ) : (
             <>
               <Camera aria-hidden="true" />
-              Activar cámara
+              Activar intérprete
             </>
           )}
+        </Button>
+
+        <Button
+          type="button"
+          variant="default"
+          size="lg"
+          className="flex-1"
+          onClick={onCaptureSign}
+          disabled={!isCameraActive || isProcessing}
+          aria-label="Interpretar seña con visión IA"
+        >
+          <Sparkles aria-hidden="true" />
+          Interpretar ahora
         </Button>
 
         <Button
           type="button"
           variant="outline"
-          onClick={onCaptureSign}
-          disabled={!isCameraActive || isProcessing}
-          aria-label="Capturar seña actual"
-          className="min-h-11 border-[var(--module-border)] text-[var(--module-fg)]"
+          size="lg"
+          className="flex-1"
+          onClick={onFinalizeBuffer}
+          disabled={!signBuffer.trim() || isProcessing}
+          aria-label="Confirmar texto deletreado"
         >
           <Scan aria-hidden="true" />
-          Capturar seña
+          Confirmar deletreo
         </Button>
       </div>
 
-      <div
-        role="log"
-        aria-live="polite"
-        aria-label="Texto reconocido de las señas"
-        className="min-h-[4rem] rounded-lg border-2 border-[var(--module-border)] bg-[var(--module-muted)] p-4 text-lg text-[var(--module-fg)]"
-        tabIndex={0}
-      >
-        {signTranscript || (
-          <span className="text-[var(--module-muted-fg)]">
-            El texto de tus señas aparecerá aquí.
-          </span>
-        )}
-      </div>
+      <Panel variant="inset" className="min-h-[5rem]">
+        <p className="mb-1 text-xs font-bold uppercase tracking-wider text-[var(--module-accent)]">
+          Señas detectadas
+        </p>
+        <div
+          role="log"
+          aria-live="polite"
+          aria-label="Texto reconocido de las señas"
+          className="text-2xl font-bold tracking-wide text-[var(--module-fg)]"
+          tabIndex={0}
+        >
+          {signTranscript || signBuffer ? (
+            signTranscript || signBuffer
+          ) : (
+            <span className="text-lg font-normal text-[var(--module-muted-fg)]">
+              Deletrea letra por letra — aparecerá aquí en tiempo real.
+            </span>
+          )}
+        </div>
+      </Panel>
     </section>
   );
 }

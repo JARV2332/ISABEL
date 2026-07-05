@@ -67,7 +67,7 @@ export function useSpeechLogic() {
         setIsaResponse(`ISA respondió: ${result}`);
         setStatus("active");
 
-        void speak(result, response.audioUrl);
+        void speak(result, { useElevenLabs: response.elevenLabsAvailable !== false });
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Error al procesar el habla";

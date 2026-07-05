@@ -14,11 +14,23 @@
 - Orquestador enriquece respuestas con `audioUrl`
 - Hook `useIsaAudio` reproduce en todos los módulos
 
-### OpenAI / Codex (IA) ✅
+### OpenAI / Groq / Codex (IA) ✅
+
+**En runtime (lo que ven los usuarios):**
+- Motor ISA: `src/lib/services/isa-ai.ts` — **Groq** (gratis, prioridad) u **OpenAI**
 - Prompt ISA: `src/lib/services/isa-prompt.ts`
-- Servicio: `src/lib/services/openai.ts`
 - API: `POST /api/isa`
 - Fallback en `isa-orchestrator.ts` cuando n8n no genera respuesta
+
+**Codex (categoría buildathon — desarrollo, no runtime):**
+- ISABEL se construyó con **Cursor + Codex** (agente de IA para escribir/refactorizar código)
+- Evidencia: historial git, `AGENTS.md`, commits incrementales en GitHub
+- *Codex no es una API de chat para el usuario final* — para eso usamos Groq/OpenAI como ISA
+
+| Variable | Proveedor | Costo |
+|----------|-----------|-------|
+| `GROQ_API_KEY` | Groq (Llama 3.3) | Gratis con límites |
+| `OPENAI_API_KEY` | OpenAI (GPT) | De pago |
 
 ## Checklist stack
 
@@ -29,7 +41,7 @@
 | Framer Motion | ✅ (dactilología) |
 | n8n Cloud | ✅ |
 | ElevenLabs | ✅ (con API key) |
-| OpenAI | ✅ (con API key) |
+| Groq / OpenAI (ISA) | ✅ (con API key) |
 | Supabase | ✅ (schema + logging) |
 | Web Speech API | ✅ |
 | Cámara WebRTC | ✅ |

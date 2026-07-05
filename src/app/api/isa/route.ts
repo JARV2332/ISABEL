@@ -1,12 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { openAIService } from "@/lib/services/openai";
+import { isaAiService } from "@/lib/services/isa-ai";
 
 export async function POST(request: NextRequest) {
   try {
-    if (!openAIService.isConfigured()) {
+    if (!isaAiService.isConfigured()) {
       return NextResponse.json(
-        { error: "OpenAI no configurado (OPENAI_API_KEY)" },
+        {
+          error:
+            "ISA IA no configurada — agrega GROQ_API_KEY (gratis) u OPENAI_API_KEY en .env.local",
+        },
         { status: 503 }
       );
     }
@@ -21,7 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "prompt requerido" }, { status: 400 });
     }
 
-    const output = await openAIService.complete({
+    const output = await isaAiService.complete({
       prompt: body.prompt.trim(),
       moduleId: body.moduleId,
       event: body.event,

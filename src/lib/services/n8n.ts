@@ -19,7 +19,8 @@ export interface N8nWebhookResponse {
   text?: string;
   audioUrl?: string;
   message?: string;
-  /** URL o data URL de audio TTS (ElevenLabs vía n8n o servidor) */
+  /** ElevenLabs activo en servidor — cliente usa POST /api/tts */
+  elevenLabsAvailable?: boolean;
   /** URL de video del avatar firmando (servicio externo) */
   avatarVideoUrl?: string;
   /** Secuencia de señas LSM procesada por n8n */

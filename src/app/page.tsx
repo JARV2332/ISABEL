@@ -1,9 +1,12 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Ear, Mic, Eye, Accessibility } from "lucide-react";
 
 import { enabledModules } from "@/components/modules";
 import { IotPanel } from "@/components/dashboard/IotPanel";
+import { IntegrationsStatusPanel } from "@/components/dashboard/IntegrationsStatusPanel";
 import { RecentInteractionsPanel } from "@/components/dashboard/RecentInteractionsPanel";
+import { getModuleTheme } from "@/lib/module-themes";
 
 const iconMap = {
   Ear,
@@ -15,46 +18,73 @@ const iconMap = {
 export default function HomePage() {
   return (
     <div className="space-y-10">
-      <section aria-labelledby="hero-heading" className="space-y-4">
-        <h1
-          id="hero-heading"
-          className="text-3xl font-bold tracking-tight text-isabel-deep-900 sm:text-4xl"
-        >
-          Bienvenido a ISABEL
-        </h1>
-        <p className="max-w-2xl text-lg text-muted-foreground">
-          Estación inteligente de accesibilidad para EDUKIDS. Selecciona un
-          módulo para comenzar.
-        </p>
+      <section
+        aria-labelledby="hero-heading"
+        className="human-surface flex flex-col items-start gap-6 rounded-[2.5rem] border-2 border-white/80 p-8 sm:flex-row sm:items-center sm:p-10"
+      >
+        <Image
+          src="/logo.png"
+          alt="Logo ISABEL EDUKIDS — accesibilidad visual, auditiva, habla y movilidad"
+          width={120}
+          height={120}
+          className="size-28 shrink-0 rounded-3xl shadow-xl"
+          priority
+        />
+        <div className="space-y-3">
+          <h1
+            id="hero-heading"
+            className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl"
+          >
+            Bienvenido a ISABEL
+          </h1>
+          <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
+            Estación inteligente de accesibilidad para EDUKIDS. Cuatro módulos,
+            un mismo corazón conectado — elige por dónde empezar.
+          </p>
+        </div>
       </section>
 
       <section aria-labelledby="modules-heading">
-        <h2 id="modules-heading" className="sr-only">
-          Módulos de accesibilidad disponibles
+        <h2
+          id="modules-heading"
+          className="mb-6 text-2xl font-extrabold text-foreground"
+        >
+          Módulos de accesibilidad
         </h2>
         <ul
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
           role="list"
         >
           {enabledModules.map((module) => {
             const Icon = iconMap[module.icon as keyof typeof iconMap];
+            const theme = getModuleTheme(module.id);
 
             return (
               <li key={module.id}>
                 <Link
                   href={module.route}
-                  className="group flex h-full flex-col rounded-xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-isabel-indigo-500 focus-visible:ring-offset-2"
+                  className="group human-press flex h-full flex-col rounded-[2rem] border-2 bg-card p-6 shadow-lg transition-shadow hover:shadow-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2"
+                  style={{
+                    borderColor: `${theme.accentLight}80`,
+                    boxShadow: `0 8px 30px -8px ${theme.accent}33`,
+                  }}
                 >
-                  <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-isabel-indigo-100 text-isabel-indigo-600 transition-colors group-hover:bg-isabel-indigo-600 group-hover:text-white">
-                    {Icon && <Icon className="size-6" aria-hidden="true" />}
+                  <div
+                    className="mb-5 flex size-16 items-center justify-center rounded-2xl text-white shadow-lg transition-transform group-hover:scale-105"
+                    style={{ background: theme.gradient }}
+                  >
+                    {Icon && <Icon className="size-8" aria-hidden="true" />}
                   </div>
-                  <h3 className="text-lg font-semibold text-card-foreground">
+                  <h3 className="text-xl font-extrabold text-card-foreground">
                     {module.name}
                   </h3>
-                  <p className="mt-2 flex-1 text-sm text-muted-foreground">
+                  <p className="mt-2 flex-1 text-base leading-relaxed text-muted-foreground">
                     {module.description}
                   </p>
-                  <span className="mt-4 text-sm font-medium text-isabel-indigo-600 group-hover:text-isabel-indigo-700">
+                  <span
+                    className="mt-5 text-base font-bold"
+                    style={{ color: theme.accent }}
+                  >
                     Abrir módulo →
                   </span>
                 </Link>
@@ -63,6 +93,8 @@ export default function HomePage() {
           })}
         </ul>
       </section>
+
+      <IntegrationsStatusPanel />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <IotPanel />

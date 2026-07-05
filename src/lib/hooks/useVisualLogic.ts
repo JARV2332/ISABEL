@@ -42,7 +42,7 @@ export function useVisualLogic() {
         setOutput(result);
         setIsaResponse(`ISA respondió: ${result}`);
         setStatus("active");
-        void speak(result, response.audioUrl);
+        void speak(result, { useElevenLabs: response.elevenLabsAvailable !== false });
 
         toast({
           title: "Contenido listo",

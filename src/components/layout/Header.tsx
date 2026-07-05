@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,6 +16,7 @@ import {
 
 import { enabledModules } from "@/components/modules";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { getModuleTheme } from "@/lib/module-themes";
 import { cn } from "@/lib/utils";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -29,29 +31,40 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-isabel-deep-700/20 bg-isabel-deep-900 text-white shadow-md">
-      <div className="mx-auto flex h-header max-w-content items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="rounded-md text-lg font-bold tracking-tight text-white transition-colors hover:text-isabel-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-isabel-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-isabel-deep-900"
-            aria-label="ISABEL - Inicio, estación de accesibilidad EDUKIDS"
-          >
-            <span className="text-isabel-cyan-400">ISABEL</span>
-            <span className="ml-2 hidden text-sm font-normal text-isabel-deep-100 sm:inline">
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-white/90 text-foreground shadow-lg backdrop-blur-md dark:bg-slate-950/90">
+      <div className="mx-auto flex h-[4.5rem] max-w-content items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <Link
+          href="/"
+          className="flex items-center gap-3 rounded-2xl transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400/40"
+          aria-label="ISABEL - Inicio, estación de accesibilidad EDUKIDS"
+        >
+          <Image
+            src="/logo.png"
+            alt=""
+            width={44}
+            height={44}
+            className="size-11 rounded-xl shadow-md"
+            priority
+          />
+          <span className="hidden flex-col sm:flex">
+            <span className="text-lg font-extrabold tracking-tight text-foreground">
+              ISABEL
+            </span>
+            <span className="text-xs font-semibold text-muted-foreground">
               EDUKIDS
             </span>
-          </Link>
-        </div>
+          </span>
+        </Link>
 
         <nav
           className="hidden md:block"
           aria-label="Navegación principal de módulos"
         >
-          <ul className="flex items-center gap-1" role="list">
+          <ul className="flex items-center gap-2" role="list">
             {enabledModules.map((module) => {
               const Icon = iconMap[module.icon];
               const isActive = pathname.startsWith(module.route);
+              const theme = getModuleTheme(module.id);
 
               return (
                 <li key={module.id}>
@@ -59,12 +72,19 @@ export function Header() {
                     href={module.route}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-isabel-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-isabel-deep-900",
-                      isActive
-                        ? "bg-isabel-indigo-600 text-white"
-                        : "text-isabel-deep-100 hover:bg-isabel-deep-700 hover:text-white"
+                      "inline-flex min-h-12 items-center gap-2 rounded-[1.25rem] px-4 py-2 text-sm font-bold transition-all human-press",
+                      "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2",
+                      !isActive && "text-muted-foreground hover:bg-muted/80"
                     )}
+                    style={
+                      isActive
+                        ? {
+                            background: theme.gradient,
+                            color: theme.accentFg,
+                            boxShadow: theme.glow,
+                          }
+                        : undefined
+                    }
                   >
                     {Icon && (
                       <Icon className="size-4 shrink-0" aria-hidden="true" />
@@ -77,13 +97,13 @@ export function Header() {
           </ul>
         </nav>
 
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
         </div>
 
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-md p-2 text-white transition-colors hover:bg-isabel-deep-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-isabel-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-isabel-deep-900 md:hidden"
+          className="human-press inline-flex min-h-12 min-w-12 items-center justify-center rounded-2xl text-foreground hover:bg-muted md:hidden"
           aria-expanded={mobileMenuOpen}
           aria-controls="mobile-navigation"
           aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú de navegación"}
@@ -100,13 +120,14 @@ export function Header() {
       {mobileMenuOpen && (
         <nav
           id="mobile-navigation"
-          className="border-t border-isabel-deep-700/30 bg-isabel-deep-800 md:hidden"
+          className="border-t border-border/60 bg-white dark:bg-slate-950 md:hidden"
           aria-label="Navegación móvil de módulos"
         >
-          <ul className="flex flex-col gap-1 p-4" role="list">
+          <ul className="flex flex-col gap-2 p-4" role="list">
             {enabledModules.map((module) => {
               const Icon = iconMap[module.icon];
               const isActive = pathname.startsWith(module.route);
+              const theme = getModuleTheme(module.id);
 
               return (
                 <li key={module.id}>
@@ -114,12 +135,17 @@ export function Header() {
                     href={module.route}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "flex items-center gap-3 rounded-md px-4 py-3 text-base font-medium transition-colors",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-isabel-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-isabel-deep-800",
-                      isActive
-                        ? "bg-isabel-indigo-600 text-white"
-                        : "text-isabel-deep-100 hover:bg-isabel-deep-700 hover:text-white"
+                      "flex min-h-14 items-center gap-3 rounded-2xl px-4 py-3 text-base font-bold human-press",
+                      !isActive && "text-muted-foreground hover:bg-muted"
                     )}
+                    style={
+                      isActive
+                        ? {
+                            background: theme.gradient,
+                            color: theme.accentFg,
+                          }
+                        : undefined
+                    }
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {Icon && (

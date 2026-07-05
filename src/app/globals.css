@@ -8,9 +8,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-geist-sans);
+  --font-heading: var(--font-jakarta);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -40,83 +40,125 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --radius-3xl: calc(var(--radius) * 1.75);
+  --radius-4xl: calc(var(--radius) * 2);
 }
 
 :root {
-  /* Paleta ISABEL — WCAG 2.1 AA */
-  --background: #f8fafc;
-  --foreground: #0b1f3a;
+  /* Human Tech — Azul profundo + cian emocional */
+  --background: #eef4fb;
+  --foreground: #061424;
   --card: #ffffff;
-  --card-foreground: #0b1f3a;
+  --card-foreground: #061424;
   --popover: #ffffff;
-  --popover-foreground: #0b1f3a;
-  --primary: #4f46e5;
+  --popover-foreground: #061424;
+  --primary: #0b1f3a;
   --primary-foreground: #ffffff;
-  --secondary: #e8edf4;
+  --secondary: #dce8f5;
   --secondary-foreground: #0b1f3a;
-  --muted: #e8edf4;
-  --muted-foreground: #3d68a0;
-  --accent: #06b6d4;
-  --accent-foreground: #061424;
+  --muted: #e4edf8;
+  --muted-foreground: #2d5589;
+  --accent: #0ea5e9;
+  --accent-foreground: #ffffff;
   --destructive: #dc2626;
-  --border: #c5d3e3;
-  --input: #c5d3e3;
-  --ring: #4f46e5;
-  --chart-1: #4f46e5;
-  --chart-2: #06b6d4;
-  --chart-3: #3730a3;
-  --chart-4: #0891b2;
-  --chart-5: #0b1f3a;
-  --radius: 0.625rem;
-  --sidebar: #0b1f3a;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #22d3ee;
+  --chart-1: #f97316;
+  --chart-2: #0ea5e9;
+  --chart-3: #db2777;
+  --chart-4: #10b981;
+  --chart-5: #fbbf24;
+  --radius: 2rem;
+  --sidebar: #061424;
   --sidebar-foreground: #e8edf4;
-  --sidebar-primary: #4f46e5;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e4270;
+  --sidebar-primary: #22d3ee;
+  --sidebar-primary-foreground: #061424;
+  --sidebar-accent: #0b1f3a;
   --sidebar-accent-foreground: #e8edf4;
-  --sidebar-border: #2d5589;
-  --sidebar-ring: #06b6d4;
+  --sidebar-border: #1e4270;
+  --sidebar-ring: #67e8f9;
+
+  /* Gradientes Human Tech */
+  --human-bg-gradient: linear-gradient(
+    145deg,
+    #fffbeb 0%,
+    #ecfeff 28%,
+    #fdf2f8 58%,
+    #ecfdf5 100%
+  );
+  --human-card-gradient: linear-gradient(
+    145deg,
+    #ffffff 0%,
+    #f8fafc 55%,
+    #f0fdfa 100%
+  );
+  --human-primary-gradient: linear-gradient(
+    135deg,
+    #22d3ee 0%,
+    #0ea5e9 50%,
+    #10b981 100%
+  );
+  --human-accent-glow: 0 12px 40px -8px rgb(34 211 238 / 0.35);
 }
 
 .dark {
-  --background: #061424;
-  --foreground: #e8edf4;
+  --background: #030a12;
+  --foreground: #f0f9ff;
   --card: #0b1f3a;
-  --card-foreground: #e8edf4;
+  --card-foreground: #f0f9ff;
   --popover: #0b1f3a;
-  --popover-foreground: #e8edf4;
-  --primary: #818cf8;
+  --popover-foreground: #f0f9ff;
+  --primary: #67e8f9;
   --primary-foreground: #061424;
   --secondary: #1e4270;
-  --secondary-foreground: #e8edf4;
-  --muted: #1e4270;
+  --secondary-foreground: #f0f9ff;
+  --muted: #0b1f3a;
   --muted-foreground: #9fb6d0;
   --accent: #22d3ee;
   --accent-foreground: #061424;
   --destructive: #f87171;
   --border: #2d5589;
   --input: #2d5589;
-  --ring: #818cf8;
-  --chart-1: #818cf8;
+  --ring: #67e8f9;
+  --chart-1: #67e8f9;
   --chart-2: #22d3ee;
-  --chart-3: #6366f1;
-  --chart-4: #67e8f9;
+  --chart-3: #818cf8;
+  --chart-4: #0891b2;
   --chart-5: #c7d2fe;
   --sidebar: #030a12;
   --sidebar-foreground: #e8edf4;
-  --sidebar-primary: #818cf8;
+  --sidebar-primary: #67e8f9;
   --sidebar-primary-foreground: #061424;
   --sidebar-accent: #0b1f3a;
   --sidebar-accent-foreground: #e8edf4;
   --sidebar-border: #1e4270;
   --sidebar-ring: #22d3ee;
+
+  --human-bg-gradient: linear-gradient(
+    160deg,
+    #030a12 0%,
+    #061424 45%,
+    #0b1f3a 100%
+  );
+  --human-card-gradient: linear-gradient(
+    145deg,
+    #0b1f3a 0%,
+    #0f2847 55%,
+    #083344 100%
+  );
+  --human-primary-gradient: linear-gradient(
+    135deg,
+    #0891b2 0%,
+    #22d3ee 55%,
+    #67e8f9 100%
+  );
+  --human-accent-glow: 0 12px 40px -8px rgb(103 232 249 / 0.25);
 }
 
 @layer base {
@@ -130,12 +172,22 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    line-height: 1.6;
+    @apply text-foreground antialiased;
+    line-height: 1.65;
+    background: var(--human-bg-gradient);
+    background-attachment: fixed;
+    min-height: 100dvh;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-extrabold tracking-tight;
+    letter-spacing: -0.02em;
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-isabel-cyan-500;
+    @apply outline-2 outline-offset-3 outline-accent;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -148,6 +200,39 @@
       scroll-behavior: auto !important;
     }
   }
+}
+
+/* ─── Human Tech utilities ─── */
+
+@utility human-press {
+  @apply transition-transform duration-150 ease-out motion-reduce:transition-none;
+  &:active {
+    transform: scale(0.95);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+@utility human-surface {
+  border-radius: var(--radius);
+  background: var(--human-card-gradient);
+  box-shadow:
+    0 4px 6px -1px rgb(11 31 58 / 0.06),
+    0 20px 50px -12px rgb(11 31 58 / 0.14);
+}
+
+@utility human-inset {
+  border-radius: calc(var(--radius) * 0.85);
+  background: color-mix(in oklch, var(--muted) 70%, transparent);
+  box-shadow: inset 0 2px 8px rgb(11 31 58 / 0.06);
+}
+
+@utility human-touch-target {
+  min-height: 4rem;
+  min-width: 4rem;
 }
 
 @utility sr-only {

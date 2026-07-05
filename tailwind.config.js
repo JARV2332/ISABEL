@@ -50,9 +50,15 @@ module.exports = {
             950: "#083344",
           },
         },
+        edukids: {
+          visual: { DEFAULT: "#F97316", light: "#FBBF24" },
+          hearing: { DEFAULT: "#0EA5E9", light: "#22D3EE" },
+          speech: { DEFAULT: "#DB2777", light: "#EC4899" },
+          mobility: { DEFAULT: "#10B981", light: "#84CC16" },
+        },
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+        sans: ["var(--font-jakarta)", "system-ui", "sans-serif"],
         mono: ["var(--font-geist-mono)", "monospace"],
       },
       spacing: {

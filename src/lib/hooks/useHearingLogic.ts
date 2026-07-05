@@ -36,7 +36,9 @@ function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
 export function useHearingLogic() {
   const { toast } = useToast();
   const { submit } = useModuleN8n("hearing");
-  const { speak, isSpeaking } = useIsaAudio();
+  const { speak, requestTts, isSpeaking, isLoadingTts, lastError, unlockAudio } =
+    useIsaAudio();
+  const [isaVoiceText, setIsaVoiceText] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
   const [status, setStatus] = useState<ModuleStatus>("idle");
@@ -72,14 +74,21 @@ export function useHearingLogic() {
           response as Record<string, unknown>,
           spokenText
         );
-        const isaText = response.output ?? spokenText;
+        const isaText = (response.output ?? spokenText).trim();
+        setIsaVoiceText(isaText);
 
-        setOutput(spokenText);
+        setOutput(isaText);
         setSignSequence(signs);
-        setIsaResponse(`ISA interpreta en señas: ${spokenText}`);
+        setIsaResponse(
+          isaText !== spokenText
+            ? `ISA respondió sobre: «${spokenText}»`
+            : `Interpretando en señas: «${spokenText}»`
+        );
         setStatus("active");
 
-        void speak(isaText, response.audioUrl);
+        void speak(isaText, {
+          useElevenLabs: response.elevenLabsAvailable !== false,
+        });
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Error al procesar el audio";
@@ -107,6 +116,7 @@ export function useHearingLogic() {
 
     setError(null);
     setStatus("active");
+    unlockAudio();
 
     const recognition = new SpeechRecognition();
     recognition.lang = "es-ES";
@@ -137,7 +147,7 @@ export function useHearingLogic() {
     recognition.start();
     setIsListening(true);
     setIsaResponse("Escuchando audio del entorno…");
-  }, [toast]);
+  }, [toast, unlockAudio]);
 
   const stopListening = useCallback(async () => {
     recognitionRef.current?.stop();
@@ -151,6 +161,7 @@ export function useHearingLogic() {
     setOutput("");
     setSignSequence(null);
     setIsaResponse(null);
+    setIsaVoiceText(null);
     setError(null);
     setStatus("idle");
   }, []);
@@ -164,6 +175,11 @@ export function useHearingLogic() {
     error,
     isListening,
     isSpeaking,
+    isLoadingTts,
+    lastAudioError: lastError,
+    isaVoiceText,
+    replayIsaVoice: () =>
+      isaVoiceText ? requestTts(isaVoiceText) : Promise.resolve(false),
     startListening,
     stopListening,
     clearSession,

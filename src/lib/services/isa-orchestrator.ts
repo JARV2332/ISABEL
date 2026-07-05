@@ -1,10 +1,10 @@
 /**
- * Orquestador ISA — enriquece respuestas n8n con OpenAI + ElevenLabs
+ * Orquestador ISA — enriquece respuestas n8n con Groq/OpenAI + ElevenLabs
  * cuando las API keys están configuradas en el servidor.
  */
 
 import { elevenLabsService } from "@/lib/services/elevenlabs";
-import { openAIService } from "@/lib/services/openai";
+import { isaAiService } from "@/lib/services/isa-ai";
 import type { N8nWebhookPayload, N8nWebhookResponse } from "@/lib/services/n8n";
 import { signLanguageService } from "@/lib/services/sign-language";
 
@@ -35,13 +35,24 @@ export async function enrichIsaResponse(
   let output =
     response.output ?? response.text ?? response.message ?? input;
 
+  const isLocalMock =
+    response.message?.includes("Modo local") ||
+    response.message?.includes("simulada") ||
+    response.message?.includes("configura N8N");
+
+  const n8nReturnedRichResponse =
+    Boolean(response.audioUrl) ||
+    (Boolean(response.output) &&
+      response.output !== input &&
+      !isLocalMock);
+
   if (
     shouldGenerateIsaResponse(payload) &&
-    openAIService.isConfigured() &&
-    (!output || output === input || response.message?.includes("simulada"))
+    isaAiService.isConfigured() &&
+    !n8nReturnedRichResponse
   ) {
     try {
-      output = await openAIService.complete({
+      output = await isaAiService.complete({
         prompt: input,
         moduleId,
         event: payload.event,
@@ -62,13 +73,12 @@ export async function enrichIsaResponse(
         }));
 
   let audioUrl = response.audioUrl;
+  const elevenLabsAvailable = elevenLabsService.isConfigured();
 
-  if (!audioUrl && output && elevenLabsService.isConfigured()) {
-    try {
-      audioUrl = await elevenLabsService.synthesizeToDataUrl({ text: output });
-    } catch {
-      /* fallback a speechSynthesis en cliente */
-    }
+  // No embebemos MP3 en base64 (lento y falla en el navegador).
+  // El cliente llama POST /api/tts con el texto de ISA.
+  if (elevenLabsAvailable && !audioUrl?.startsWith("http")) {
+    audioUrl = undefined;
   }
 
   return {
@@ -77,5 +87,6 @@ export async function enrichIsaResponse(
     signSequence: signs,
     signLanguage: response.signLanguage ?? "LSM",
     audioUrl,
+    elevenLabsAvailable,
   };
 }

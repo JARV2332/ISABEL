@@ -12,7 +12,9 @@ export function ThemeToggle() {
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem("isabel-theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
     const isDark = stored === "dark" || (!stored && prefersDark);
     setDark(isDark);
     document.documentElement.classList.toggle("dark", isDark);
@@ -27,7 +29,13 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button type="button" variant="ghost" size="sm" className="size-9 p-0" aria-hidden="true" />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="border-border/60 text-foreground hover:bg-muted"
+        aria-hidden="true"
+      />
     );
   }
 
@@ -35,15 +43,15 @@ export function ThemeToggle() {
     <Button
       type="button"
       variant="ghost"
-      size="sm"
+      size="icon"
       onClick={toggle}
-      className="size-9 p-0 text-white hover:bg-isabel-deep-700"
+      className="border-border/60 text-foreground shadow-none hover:bg-muted hover:shadow-md"
       aria-label={dark ? "Activar modo claro" : "Activar modo oscuro"}
     >
       {dark ? (
-        <Sun className="size-4" aria-hidden="true" />
+        <Sun className="size-6" aria-hidden="true" />
       ) : (
-        <Moon className="size-4" aria-hidden="true" />
+        <Moon className="size-6" aria-hidden="true" />
       )}
     </Button>
   );

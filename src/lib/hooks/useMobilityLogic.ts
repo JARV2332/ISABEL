@@ -89,7 +89,7 @@ export function useMobilityLogic() {
       setIsaResponse(`ISA respondió en voz y lenguaje de señas: ${result}`);
       setStatus("active");
 
-      void speak(result, response.audioUrl);
+      void speak(result, { useElevenLabs: response.elevenLabsAvailable !== false });
 
       toast({
         title: "Mensaje enviado",
@@ -107,7 +107,7 @@ export function useMobilityLogic() {
         variant: "destructive",
       });
     }
-  }, [buildMessage, customText, selectedPictograms, submit, toast]);
+  }, [buildMessage, customText, selectedPictograms, speak, submit, toast]);
 
   const clearSession = useCallback(() => {
     setSelectedPictograms([]);
@@ -128,6 +128,7 @@ export function useMobilityLogic() {
     signSequence,
     isaResponse,
     error,
+    isSpeaking,
     togglePictogram,
     sendMessage,
     clearSession,

@@ -32,14 +32,17 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 const TOAST_DURATION_MS = 5000;
 
 const variantStyles: Record<ToastVariant, string> = {
-  default: "border-border bg-card text-card-foreground",
+  default: "border-border/80 bg-card/95 text-card-foreground backdrop-blur-md",
   destructive:
-    "border-destructive/50 bg-destructive/10 text-destructive dark:bg-destructive/20",
+    "border-destructive/40 bg-destructive/10 text-destructive dark:bg-destructive/20",
   success:
-    "border-isabel-cyan-600/50 bg-isabel-cyan-50 text-isabel-deep-900 dark:bg-isabel-cyan-950 dark:text-isabel-cyan-100",
+    "border-accent/40 bg-accent/15 text-isabel-deep-900 dark:bg-accent/10 dark:text-accent",
 };
 
-function ToastViewport({ toasts, onDismiss }: {
+function ToastViewport({
+  toasts,
+  onDismiss,
+}: {
   toasts: ToastItem[];
   onDismiss: (id: string) => void;
 }) {
@@ -47,31 +50,37 @@ function ToastViewport({ toasts, onDismiss }: {
     <div
       aria-live="assertive"
       aria-relevant="additions"
-      className="pointer-events-none fixed bottom-4 right-4 z-[200] flex w-full max-w-sm flex-col gap-2 p-4 sm:bottom-6 sm:right-6"
+      className="pointer-events-none fixed bottom-6 right-6 z-[200] flex w-full max-w-md flex-col gap-3 p-4"
     >
       {toasts.map((item) => (
         <div
           key={item.id}
           role="alert"
           className={cn(
-            "pointer-events-auto flex items-start gap-3 rounded-lg border p-4 shadow-lg",
-            "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2",
+            "pointer-events-auto flex items-start gap-4 rounded-[1.75rem] border-2 p-5 shadow-2xl drop-shadow-lg",
+            "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3",
             variantStyles[item.variant]
           )}
         >
-          <div className="flex-1 space-y-1">
-            <p className="text-sm font-semibold">{item.title}</p>
+          <div className="flex-1 space-y-1.5">
+            <p className="text-lg font-bold">{item.title}</p>
             {item.description && (
-              <p className="text-sm opacity-90">{item.description}</p>
+              <p className="text-base leading-relaxed opacity-90">
+                {item.description}
+              </p>
             )}
           </div>
           <button
             type="button"
             onClick={() => onDismiss(item.id)}
-            className="shrink-0 rounded-md p-1 opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={cn(
+              "human-touch-target human-press flex shrink-0 items-center justify-center",
+              "rounded-full border-2 border-border/60 bg-muted/50",
+              "transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40"
+            )}
             aria-label={`Cerrar notificación: ${item.title}`}
           >
-            <X className="size-4" aria-hidden="true" />
+            <X className="size-6" aria-hidden="true" />
           </button>
         </div>
       ))}
@@ -86,13 +95,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }, []);
 
-  const toast = useCallback(
-    (options: Omit<ToastItem, "id">) => {
-      const id = crypto.randomUUID();
-      setToasts((current) => [...current, { ...options, id }]);
-    },
-    []
-  );
+  const toast = useCallback((options: Omit<ToastItem, "id">) => {
+    const id = crypto.randomUUID();
+    setToasts((current) => [...current, { ...options, id }]);
+  }, []);
 
   const value = useMemo(() => ({ toast, dismiss }), [toast, dismiss]);
 

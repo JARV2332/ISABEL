@@ -15,6 +15,8 @@ Repositorio: [github.com/JARV2332/ISABEL](https://github.com/JARV2332/ISABEL)
 
 Ver [docs/BUILDATHON.md](docs/BUILDATHON.md) y [docs/DEMO.md](docs/DEMO.md).
 
+**Conectar tus cuentas (ElevenLabs, OpenAI, Supabase):** [docs/SETUP-CUENTAS.md](docs/SETUP-CUENTAS.md)
+
 ## Inicio rápido
 
 ```bash
