@@ -86,7 +86,7 @@ export function useMobilityLogic() {
 
       setOutput(result);
       setSignSequence(signs);
-      setIsaResponse(`ISA respondió en voz y lenguaje de señas: ${result}`);
+      setIsaResponse(`ISA respondió en voz y lengua de señas: ${result}`);
       setStatus("active");
 
       void speak(result, { useElevenLabs: response.elevenLabsAvailable !== false });

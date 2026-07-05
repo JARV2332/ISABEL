@@ -32,21 +32,52 @@ type InputMode = "microphone" | "camera";
 type TextInputMode = "voice" | "keyboard" | "handwriting";
 
 const INPUT_TABS = [
-  { id: "microphone" as const, label: "Texto a señales", icon: Hand },
-  { id: "camera" as const, label: "Señas a audio", icon: Volume2 },
+  {
+    id: "microphone" as const,
+    label: "Traducir mi mensaje a lengua de señas",
+    icon: Hand,
+    tooltip:
+      "Tengo un mensaje en voz, texto o escritura a mano. ISABEL lo convertirá a lengua de señas para facilitar la comunicación.",
+  },
+  {
+    id: "camera" as const,
+    label: "Traducir señas a voz",
+    icon: Volume2,
+    tooltip:
+      "Tengo un mensaje en lengua de señas. ISABEL lo traducirá a texto y voz para facilitar la comunicación.",
+  },
 ];
 
-const TEXT_INPUT_TABS = [
-  { id: "voice" as const, label: "Voz", icon: Mic },
-  { id: "keyboard" as const, label: "Teclado", icon: Keyboard },
-  { id: "handwriting" as const, label: "A mano", icon: PenLine },
-];
+const INPUT_METHODS = [
+  {
+    id: "voice" as const,
+    title: "Hablar",
+    description: "Usa tu voz para dictar el mensaje.",
+    icon: Mic,
+  },
+  {
+    id: "keyboard" as const,
+    title: "Escribir",
+    description: "Escribe aquí para traducir tu mensaje.",
+    icon: Keyboard,
+  },
+  {
+    id: "handwriting" as const,
+    title: "Escribir a mano",
+    description: "Dibuja o escribe a mano para traducir tu mensaje.",
+    icon: PenLine,
+  },
+] as const;
+
+const MESSAGE_PLACEHOLDER =
+  "Tu mensaje aparecerá aquí. Puedes hablar, escribir o utilizar escritura a mano para comenzar la traducción.";
 
 export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
   const [inputMode, setInputMode] = useState<InputMode>("microphone");
   const [textInputMode, setTextInputMode] = useState<TextInputMode>("voice");
   const [manualDraft, setManualDraft] = useState("");
   const holdActiveRef = useRef(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const mic = useHearingLogic();
   const camera = useSignCapture();
@@ -69,7 +100,7 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
   const beginHold = useCallback(() => {
     if (holdActiveRef.current || mic.isProcessing) return;
     holdActiveRef.current = true;
-    mic.startListening();
+    void mic.startListening();
   }, [mic]);
 
   const endHold = useCallback(() => {
@@ -104,8 +135,12 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
     [mic]
   );
 
-  const canInterpret =
-    mic.hasInterpretText && !mic.isListening && !mic.isProcessing;
+  const canInterpret = mic.hasInterpretText && !mic.isProcessing;
+
+  const handleInterpret = useCallback(async () => {
+    await mic.interpretTranscript();
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [mic]);
 
   return (
     <ModuleShell
@@ -129,7 +164,7 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
         options={INPUT_TABS}
         value={inputMode}
         onChange={setInputMode}
-        ariaLabel="Modo de entrada"
+        ariaLabel="Forma de comunicación"
         className="mb-8"
       />
 
@@ -148,18 +183,16 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
               <span className="flex size-12 items-center justify-center rounded-2xl bg-accent/20 text-[var(--module-accent)]">
                 <Hand className="size-6" aria-hidden="true" />
               </span>
-              Texto a señales
+              Traducir mi mensaje a lengua de señas
             </h2>
             <p className="mb-5 text-lg leading-relaxed text-[var(--module-muted-fg)]">
-              <span className="font-bold text-[var(--module-fg)]">Instrucciones:</span>{" "}
-              Habla manteniendo presionado el botón o escribe texto por medio de un
-              teclado integrado o escritura a mano. Cuando tu frase esté lista, toca
-              el botón «Interpretar» para ver las señas LSM.
+              Elige una de las siguientes formas para ingresar tu mensaje. ISABEL lo
+              interpretará y lo convertirá automáticamente a lengua de señas.
             </p>
 
             <Panel variant="inset" className="mb-4 min-h-[8rem]">
               <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--module-accent)]">
-                Tu mensaje
+                Mensaje a traducir
               </p>
 
               {mic.words.length > 0 ? (
@@ -203,7 +236,7 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
               >
                 {mic.displayTranscript || (
                   <span className="text-[var(--module-muted-fg)]">
-                    Aún no hay texto. Usa voz, teclado o escritura a mano.
+                    {MESSAGE_PLACEHOLDER}
                   </span>
                 )}
               </div>
@@ -240,13 +273,47 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
               </div>
             )}
 
-            <TabGroup
-              options={TEXT_INPUT_TABS}
-              value={textInputMode}
-              onChange={setTextInputMode}
-              ariaLabel="Forma de ingresar texto"
-              className="mb-4"
-            />
+            <div className="mb-4">
+              <p className="mb-4 text-lg font-semibold text-[var(--module-fg)]">
+                Selecciona cómo deseas ingresar tu mensaje.
+              </p>
+              <div
+                className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+                role="radiogroup"
+                aria-label="Métodos para ingresar tu mensaje"
+              >
+                {INPUT_METHODS.map(({ id, title, description, icon: Icon }) => {
+                  const selected = textInputMode === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setTextInputMode(id)}
+                      className={cn(
+                        "human-press flex min-h-[9.5rem] flex-col items-start gap-3 rounded-[1.5rem] border-2 p-5 text-left transition-all duration-150",
+                        "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
+                        selected
+                          ? "border-[var(--module-accent)] bg-[var(--module-muted)] shadow-lg ring-2 ring-[var(--module-accent)]/25"
+                          : "border-[var(--module-border)] bg-[var(--module-bg)] hover:border-[var(--module-accent)]/40"
+                      )}
+                    >
+                      <Icon
+                        className="size-8 shrink-0 text-[var(--module-accent)]"
+                        aria-hidden="true"
+                      />
+                      <span className="text-xl font-bold text-[var(--module-fg)]">
+                        {title}
+                      </span>
+                      <span className="text-base leading-relaxed text-[var(--module-muted-fg)]">
+                        {description}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             {textInputMode === "voice" ? (
               <div
@@ -274,18 +341,26 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
                   }
                   disabled={mic.isProcessing}
                   onContextMenu={(event) => event.preventDefault()}
-                  onMouseDown={(event) => {
+                  onPointerDown={(event) => {
+                    if (event.button !== 0) return;
                     event.preventDefault();
+                    event.currentTarget.setPointerCapture(event.pointerId);
                     beginHold();
                   }}
-                  onMouseUp={endHold}
-                  onMouseLeave={endHold}
-                  onTouchStart={(event) => {
+                  onPointerUp={(event) => {
                     event.preventDefault();
-                    beginHold();
+                    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                      event.currentTarget.releasePointerCapture(event.pointerId);
+                    }
+                    endHold();
                   }}
-                  onTouchEnd={endHold}
-                  onTouchCancel={endHold}
+                  onPointerCancel={(event) => {
+                    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                      event.currentTarget.releasePointerCapture(event.pointerId);
+                    }
+                    endHold();
+                  }}
+                  onLostPointerCapture={endHold}
                 >
                   <Mic
                     className={cn("size-7", mic.isListening && "animate-pulse")}
@@ -297,13 +372,13 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
             ) : textInputMode === "keyboard" ? (
               <div className="space-y-3" role="group" aria-label="Entrada por teclado">
                 <label htmlFor="manual-text-input" className="sr-only">
-                  Escribir texto para interpretar en señas
+                  Escribir mensaje para traducir a lengua de señas
                 </label>
                 <textarea
                   id="manual-text-input"
                   value={manualDraft}
                   onChange={(event) => setManualDraft(event.target.value)}
-                  placeholder="Escribe aquí tu frase o palabras…"
+                  placeholder={MESSAGE_PLACEHOLDER}
                   rows={4}
                   disabled={mic.isProcessing}
                   className={cn(
@@ -340,11 +415,11 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
               size="lg"
               className="mt-4 min-h-16 w-full text-xl sm:w-auto"
               disabled={!canInterpret}
-              onClick={() => void mic.interpretTranscript()}
-              aria-label="Interpretar texto acumulado en señas LSM"
+              onClick={() => void handleInterpret()}
+              aria-label="Mostrar interpretación en lengua de señas"
             >
               <Sparkles aria-hidden="true" />
-              {mic.isProcessing ? "Interpretando…" : "Interpretar a señales"}
+              {mic.isProcessing ? "Mostrando interpretación…" : "Mostrar interpretación"}
             </Button>
           </section>
         </div>
@@ -375,7 +450,7 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
       )}
 
       {inputMode === "microphone" && (output || signSequence) && (
-        <>
+        <div ref={resultsRef}>
           {signSequence && (
             <SignLanguageAvatar
               sequence={signSequence}
@@ -425,7 +500,7 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
               )}
             </section>
           )}
-        </>
+        </div>
       )}
 
       {inputMode === "camera" && output && (

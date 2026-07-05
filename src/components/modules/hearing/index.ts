@@ -2,8 +2,9 @@ import type { ModuleInterface } from "@/types/module";
 
 export const hearingModule: ModuleInterface = {
   id: "hearing",
-  name: "Audición",
-  description: "Asistencia para personas con discapacidad auditiva. Incluye avatar LSM.",
+  name: "Asistencia para personas con discapacidad auditiva",
+  description:
+    "Elige cómo deseas comunicarte. ISABEL adaptará la conversación automáticamente.",
   status: "idle",
   route: "/modulos/audicion",
   enabled: true,

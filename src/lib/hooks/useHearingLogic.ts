@@ -44,16 +44,26 @@ function splitWords(text: string): string[] {
   return text.trim().split(/\s+/).filter(Boolean);
 }
 
+function mergeTranscriptText(committed: string[], pending: string): string {
+  const committedText = committed.join(" ").trim();
+  const pendingText = pending.trim();
+  if (committedText && pendingText) return `${committedText} ${pendingText}`;
+  return committedText || pendingText;
+}
+
 export function useHearingLogic() {
   const { toast } = useToast();
   const { submit } = useModuleN8n("hearing");
   const { requestTts, isSpeaking, isLoadingTts, lastError, unlockAudio } =
     useIsaAudio();
+
   const [isaVoiceText, setIsaVoiceText] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const wordsRef = useRef<string[]>([]);
   const sessionTranscriptRef = useRef("");
   const shouldCommitSessionRef = useRef(false);
+  const isListeningRef = useRef(false);
+  const isHoldingRef = useRef(false);
 
   const [words, setWords] = useState<string[]>([]);
   const [liveTranscript, setLiveTranscript] = useState("");
@@ -63,6 +73,7 @@ export function useHearingLogic() {
   const [isaResponse, setIsaResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
+  const [isInterpreting, setIsInterpreting] = useState(false);
 
   const syncWords = useCallback((next: string[]) => {
     wordsRef.current = next;
@@ -72,7 +83,11 @@ export function useHearingLogic() {
   const transcript = words.join(" ");
 
   useEffect(() => {
-    return () => recognitionRef.current?.abort();
+    return () => {
+      recognitionRef.current?.abort();
+      isListeningRef.current = false;
+      isHoldingRef.current = false;
+    };
   }, []);
 
   const commitSession = useCallback(() => {
@@ -82,7 +97,7 @@ export function useHearingLogic() {
       if (sessionWords.length > 0) {
         syncWords([...wordsRef.current, ...sessionWords]);
         setIsaResponse(
-          "Texto agregado. Puedes seguir hablando, escribir más o tocar «Interpretar»."
+          "Texto agregado. Puedes seguir hablando, escribir más o tocar «Mostrar interpretación»."
         );
       }
     }
@@ -92,7 +107,37 @@ export function useHearingLogic() {
     shouldCommitSessionRef.current = false;
   }, [syncWords]);
 
-  const startListening = useCallback(() => {
+  const finalizeListening = useCallback(() => {
+    isListeningRef.current = false;
+    isHoldingRef.current = false;
+    setIsListening(false);
+
+    if (shouldCommitSessionRef.current) {
+      commitSession();
+    }
+  }, [commitSession]);
+
+  const requestMicrophoneAccess = useCallback(async (): Promise<boolean> => {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      return true;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+      return true;
+    } catch {
+      const message = "Permiso de micrófono denegado. Actívalo en el navegador.";
+      setError(message);
+      setStatus("error");
+      toast({ title: "Micrófono bloqueado", description: message, variant: "destructive" });
+      return false;
+    }
+  }, [toast]);
+
+  const startListening = useCallback(async () => {
+    if (isListeningRef.current || isHoldingRef.current) return;
+
     const SpeechRecognition = getSpeechRecognition();
     if (!SpeechRecognition) {
       const message = "Tu navegador no soporta reconocimiento de voz";
@@ -102,8 +147,10 @@ export function useHearingLogic() {
       return;
     }
 
-    if (isListening) return;
+    const hasMic = await requestMicrophoneAccess();
+    if (!hasMic) return;
 
+    isHoldingRef.current = true;
     setError(null);
     setStatus("active");
     unlockAudio();
@@ -112,12 +159,16 @@ export function useHearingLogic() {
     setLiveTranscript("");
     shouldCommitSessionRef.current = false;
 
+    recognitionRef.current?.abort();
+
     const recognition = new SpeechRecognition();
     recognition.lang = "es-ES";
     recognition.continuous = true;
     recognition.interimResults = true;
 
     recognition.onresult = (event) => {
+      if (!isHoldingRef.current) return;
+
       let sessionText = "";
       for (let i = 0; i < event.results.length; i++) {
         sessionText += event.results[i][0].transcript;
@@ -128,39 +179,71 @@ export function useHearingLogic() {
     };
 
     recognition.onerror = (event) => {
-      if (event.error !== "aborted") {
-        setError(`Error de micrófono: ${event.error}`);
-        setStatus("error");
+      if (event.error === "aborted" || event.error === "no-speech") {
+        finalizeListening();
+        return;
       }
-      setIsListening(false);
+
+      setError(`Error de micrófono: ${event.error}`);
+      setStatus("error");
       shouldCommitSessionRef.current = false;
+      finalizeListening();
     };
 
     recognition.onend = () => {
-      setIsListening(false);
-      if (shouldCommitSessionRef.current) {
-        commitSession();
-      }
+      finalizeListening();
     };
 
     recognitionRef.current = recognition;
 
     try {
       recognition.start();
+      isListeningRef.current = true;
       setIsListening(true);
       setIsaResponse("Escuchando… suelta el botón para agregar el texto.");
     } catch {
+      isHoldingRef.current = false;
+      isListeningRef.current = false;
+      setIsListening(false);
       setError("No se pudo iniciar el micrófono");
       setStatus("error");
     }
-  }, [toast, unlockAudio, isListening, commitSession]);
+  }, [toast, unlockAudio, requestMicrophoneAccess, finalizeListening]);
 
   const stopListening = useCallback(() => {
-    if (!recognitionRef.current || !isListening) return;
+    if (!isHoldingRef.current && !isListeningRef.current) return;
 
+    isHoldingRef.current = false;
     shouldCommitSessionRef.current = true;
-    recognitionRef.current.stop();
-  }, [isListening]);
+
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+      finalizeListening();
+      return;
+    }
+
+    try {
+      recognition.stop();
+    } catch {
+      finalizeListening();
+    }
+
+    window.setTimeout(() => {
+      if (shouldCommitSessionRef.current) {
+        finalizeListening();
+      }
+    }, 350);
+  }, [finalizeListening]);
+
+  const flushPendingTranscript = useCallback(() => {
+    const pending = sessionTranscriptRef.current.trim();
+    if (!pending) return;
+
+    syncWords([...wordsRef.current, ...splitWords(pending)]);
+    sessionTranscriptRef.current = "";
+    setLiveTranscript("");
+    shouldCommitSessionRef.current = false;
+  }, [syncWords]);
 
   const appendManualText = useCallback(
     (text: string) => {
@@ -175,7 +258,7 @@ export function useHearingLogic() {
       }
 
       syncWords([...wordsRef.current, ...manualWords]);
-      setIsaResponse("Texto escrito agregado. Toca «Interpretar» cuando quieras.");
+      setIsaResponse("Texto agregado. Toca «Mostrar interpretación» cuando quieras.");
     },
     [syncWords, toast]
   );
@@ -209,20 +292,15 @@ export function useHearingLogic() {
   }, [syncWords]);
 
   const interpretTranscript = useCallback(async () => {
-    if (isListening) {
-      shouldCommitSessionRef.current = true;
-      recognitionRef.current?.stop();
+    if (isHoldingRef.current || isListeningRef.current) {
+      stopListening();
+      await new Promise((resolve) => window.setTimeout(resolve, 400));
     }
 
-    const pending = sessionTranscriptRef.current.trim();
-    if (pending) {
-      syncWords([...wordsRef.current, ...splitWords(pending)]);
-      sessionTranscriptRef.current = "";
-      setLiveTranscript("");
-    }
+    flushPendingTranscript();
 
-    const text = wordsRef.current.join(" ").trim();
-    if (!text) {
+    const text = mergeTranscriptText(wordsRef.current, sessionTranscriptRef.current);
+    if (!text.trim()) {
       toast({
         title: "Sin texto",
         description: "Habla, escribe o agrega texto antes de interpretar.",
@@ -231,18 +309,24 @@ export function useHearingLogic() {
       return;
     }
 
+    if (!wordsRef.current.length) {
+      syncWords(splitWords(text));
+    }
+
+    const finalText = mergeTranscriptText(wordsRef.current, "");
+    setIsInterpreting(true);
     setStatus("processing");
     setError(null);
 
     try {
-      const signs = textToFingerspellingSequence(text);
-      setOutput(text);
+      const signs = textToFingerspellingSequence(finalText);
+      setOutput(finalText);
       setSignSequence(signs);
-      setIsaVoiceText(text);
-      setIsaResponse(`Interpretando en señas: «${text}»`);
+      setIsaVoiceText(finalText);
+      setIsaResponse(`Mostrando interpretación: «${finalText}»`);
       setStatus("active");
 
-      void requestTts(text);
+      void requestTts(finalText);
 
       void fetch("/api/interactions/log", {
         method: "POST",
@@ -250,19 +334,17 @@ export function useHearingLogic() {
         body: JSON.stringify({
           moduleId: "hearing",
           eventType: "hearing.transcribe",
-          inputText: text,
-          outputText: text,
+          inputText: finalText,
+          outputText: finalText,
         }),
       });
 
-      try {
-        await submit({
-          event: "hearing.transcribe",
-          data: { transcript: text, input: text },
-        });
-      } catch {
-        /* Las señas locales ya están listas; n8n es opcional aquí */
-      }
+      void submit({
+        event: "hearing.transcribe",
+        data: { transcript: finalText, input: finalText },
+      }).catch(() => {
+        /* n8n opcional */
+      });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Error al interpretar el texto";
@@ -273,13 +355,16 @@ export function useHearingLogic() {
         description: message,
         variant: "destructive",
       });
+    } finally {
+      setIsInterpreting(false);
     }
-  }, [isListening, syncWords, submit, toast, requestTts]);
-
+  }, [stopListening, flushPendingTranscript, syncWords, submit, toast, requestTts]);
   const clearSession = useCallback(() => {
     recognitionRef.current?.abort();
     sessionTranscriptRef.current = "";
     shouldCommitSessionRef.current = false;
+    isListeningRef.current = false;
+    isHoldingRef.current = false;
     syncWords([]);
     setLiveTranscript("");
     setOutput("");
@@ -288,13 +373,11 @@ export function useHearingLogic() {
     setIsaVoiceText(null);
     setError(null);
     setIsListening(false);
+    setIsInterpreting(false);
     setStatus("idle");
   }, [syncWords]);
 
-  const displayTranscript = [transcript, liveTranscript]
-    .filter(Boolean)
-    .join(transcript && liveTranscript ? " " : "");
-
+  const displayTranscript = mergeTranscriptText(words, liveTranscript);
   const hasInterpretText = Boolean(displayTranscript.trim());
 
   return {
@@ -309,7 +392,7 @@ export function useHearingLogic() {
     isaResponse,
     error,
     isListening,
-    isProcessing: status === "processing",
+    isProcessing: isInterpreting,
     isSpeaking,
     isLoadingTts,
     lastAudioError: lastError,

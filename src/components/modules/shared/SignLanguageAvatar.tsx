@@ -85,7 +85,7 @@ export function SignLanguageAvatar({
   const progressLabel =
     totalSigns > 0
       ? `Letra ${currentIndex + 1} de ${totalSigns}: ${currentSign?.label ?? ""}`
-      : "Reproduciendo video de lenguaje de señas";
+      : "Reproduciendo video de lengua de señas";
 
   const isHero = displaySize === "hero";
 
@@ -106,7 +106,7 @@ export function SignLanguageAvatar({
         )}
       >
         <Hand className="size-5" aria-hidden="true" />
-        LSM — {avatarName}
+        Interpretación — {avatarName}
       </h2>
 
       <p
@@ -115,8 +115,8 @@ export function SignLanguageAvatar({
           isHero ? "text-base leading-relaxed sm:text-lg" : "text-sm"
         )}
       >
-        La frase se deletrea letra por letra con el abecedario manual (dactilología
-        LSM) para que personas con discapacidad auditiva puedan leer las señas.
+        La frase se deletrea letra por letra con el abecedario manual para que
+        personas con discapacidad auditiva puedan leer las señas.
       </p>
 
       <div className="sr-only" aria-live="polite" aria-atomic="true" role="status">
@@ -128,7 +128,7 @@ export function SignLanguageAvatar({
           controls
           autoPlay
           className="w-full rounded-lg border-2 border-[var(--module-border)] bg-black"
-          aria-label={`Video de lenguaje de señas: ${sequence.sourceText}`}
+          aria-label={`Video de lengua de señas: ${sequence.sourceText}`}
         >
           <source src={sequence.avatarVideoUrl} type="video/mp4" />
         </video>

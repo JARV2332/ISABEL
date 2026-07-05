@@ -58,26 +58,21 @@ export function SignCaptureCamera({
           <span className="flex size-12 items-center justify-center rounded-2xl bg-accent/20 text-[var(--module-accent)]">
             <Hand className="size-6" aria-hidden="true" />
           </span>
-          Señas a audio
+          Traducir señas a voz
         </h2>
         <p className="text-lg leading-relaxed text-[var(--module-muted-fg)]">
-          Deletrea señas con la cámara. ISA convertirá tu mensaje en audio para
-          que otras personas puedan escucharlo.
+          Colócate frente a la cámara y realiza las señas de forma natural. ISABEL
+          interpretará el mensaje y lo convertirá en texto y voz para facilitar la
+          comunicación.
         </p>
         <details className="rounded-[1.5rem] border-2 border-border/60 bg-muted/40 px-5 py-3 text-base">
           <summary className="cursor-pointer font-bold text-[var(--module-fg)]">
-            Guía rápida de letras
+            Ayuda para realizar señas
           </summary>
-          <ul className="mt-3 space-y-1.5 text-[var(--module-muted-fg)]">
-            <li><strong>A</strong> — Puño cerrado, pulgar al costado</li>
-            <li><strong>B</strong> — 4 dedos rectos juntos, pulgar doblado</li>
-            <li><strong>L</strong> — Pulgar e índice en forma de L</li>
-            <li><strong>O</strong> — Pulgar e índice formando círculo</li>
-            <li><strong>V</strong> — Índice y medio separados (V)</li>
-            <li><strong>U</strong> — Índice y medio juntos</li>
-            <li><strong>I</strong> — Solo meñique arriba</li>
-            <li><strong>Y</strong> — Pulgar y meñique (🤙)</li>
-            <li><strong>S</strong> — Puño con pulgar sobre los dedos</li>
+          <ul className="mt-3 space-y-2 text-[var(--module-muted-fg)]">
+            <li>• Alfabeto manual</li>
+            <li>• Señas frecuentes</li>
+            <li>• Consejos para posicionarse frente a la cámara</li>
           </ul>
         </details>
       </div>
@@ -172,7 +167,7 @@ export function SignCaptureCamera({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={letterImageUrl(currentLetter)}
-                alt={`Referencia LSM de la letra ${currentLetter}`}
+                alt={`Referencia de la letra ${currentLetter} en lengua de señas`}
                 className="max-h-[min(42vh,400px)] w-full max-w-[300px] object-contain drop-shadow-[0_16px_32px_rgba(15,23,42,0.22)]"
               />
               <p className="mt-5 text-4xl font-black tracking-[0.3em] text-[var(--module-accent)]">
@@ -227,10 +222,10 @@ export function SignCaptureCamera({
           className="flex-1"
           onClick={onCaptureSign}
           disabled={!isCameraActive || isProcessing}
-          aria-label="Interpretar seña con visión IA"
+          aria-label="Interpretar señas con visión IA"
         >
           <Sparkles aria-hidden="true" />
-          Interpretar ahora
+          Interpretar señas
         </Button>
 
         <Button

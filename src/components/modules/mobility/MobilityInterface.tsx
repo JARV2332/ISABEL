@@ -72,7 +72,7 @@ export function MobilityInterface({ module = mobilityModule }: ModuleViewProps) 
           </h2>
           <p className="mb-4 text-sm text-[var(--module-muted-fg)]">
             Selecciona pictogramas o escribe un mensaje. ISA lo convertirá en
-            voz, texto y lenguaje de señas (LSM).
+            voz, texto y lengua de señas.
           </p>
 
           <div

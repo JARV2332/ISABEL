@@ -27,7 +27,7 @@ export const moduleThemes: Record<ModuleId, ModuleTheme> = {
   },
   hearing: {
     id: "hearing",
-    label: "Audición",
+    label: "Discapacidad auditiva",
     accent: "#0EA5E9",
     accentLight: "#22D3EE",
     accentFg: "#ffffff",

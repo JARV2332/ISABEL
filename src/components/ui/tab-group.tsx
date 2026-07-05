@@ -8,6 +8,7 @@ export interface TabOption<T extends string> {
   id: T;
   label: string;
   icon?: LucideIcon;
+  tooltip?: string;
 }
 
 interface TabGroupProps<T extends string> {
@@ -34,7 +35,7 @@ export function TabGroup<T extends string>({
         className
       )}
     >
-      {options.map(({ id, label, icon: Icon }) => {
+      {options.map(({ id, label, icon: Icon, tooltip }) => {
         const selected = value === id;
         return (
           <button
@@ -44,10 +45,11 @@ export function TabGroup<T extends string>({
             aria-selected={selected}
             aria-controls={`panel-${id}`}
             id={`tab-${id}`}
+            title={tooltip}
             onClick={() => onChange(id)}
             className={cn(
               "human-press flex min-h-16 flex-1 items-center justify-center gap-2.5",
-              "rounded-[1.5rem] px-5 text-lg font-bold transition-all duration-150",
+              "rounded-[1.5rem] px-4 py-3 text-center text-base font-bold leading-snug transition-all duration-150 sm:px-5 sm:text-lg",
               "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
               selected
                 ? "bg-[image:var(--module-gradient,var(--human-primary-gradient))] text-primary-foreground shadow-lg dark:text-white"
@@ -55,7 +57,7 @@ export function TabGroup<T extends string>({
             )}
           >
             {Icon && <Icon className="size-6 shrink-0" aria-hidden="true" />}
-            {label}
+            <span>{label}</span>
           </button>
         );
       })}

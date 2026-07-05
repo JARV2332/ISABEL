@@ -375,7 +375,7 @@ export function useSignCapture() {
     if (!text) {
       toast({
         title: "Sin señas acumuladas",
-        description: "Seña letra por letra o usa «Interpretar ahora».",
+        description: "Seña letra por letra o usa «Interpretar señas».",
         variant: "destructive",
       });
       return null;
