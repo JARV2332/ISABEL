@@ -1,0 +1,35 @@
+---
+description: Commits y push automáticos al repositorio ISABEL en GitHub
+alwaysApply: true
+---
+
+# Git — commits y push (agente)
+
+El usuario **no** hace commits manualmente. El agente se encarga de todo el flujo git al terminar cambios de código.
+
+## Remoto
+
+- **URL:** https://github.com/JARV2332/ISABEL.git
+- **Rama:** `main`
+- **Remoto:** `origin` (ya configurado en este proyecto)
+
+## Cuándo commitear y pushear
+
+Tras completar una tarea con cambios en el código, **sin esperar a que el usuario lo pida**:
+
+1. `git status` y `git diff` para revisar qué cambió
+2. `git add` de los archivos relevantes (nunca `.env`, credenciales ni secretos)
+3. Commit con mensaje conciso en estilo del repo (`feat:`, `fix:`, `docs:`, etc.)
+4. `git push origin main`
+
+## Mensajes de commit
+
+- 1–2 oraciones, enfoque en el **por qué**
+- Seguir el estilo de commits recientes del repositorio
+- En PowerShell usar here-string: `git commit -m @"..."@`
+
+## Excepciones
+
+- No hacer commit vacío si no hay cambios
+- No hacer force push a `main`
+- No commitear archivos con secretos; avisar al usuario si los pide incluir
