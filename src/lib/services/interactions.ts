@@ -8,7 +8,8 @@ function getSupabaseEnv(): { url: string; key: string } {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key =
     process.env.SUPABASE_SERVICE_ROLE_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (!url || !key) {
     throw new Error(
@@ -29,7 +30,9 @@ let browserClient: TypedSupabaseClient | null = null;
 export function getSupabaseBrowserClient(): TypedSupabaseClient {
   if (!browserClient) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const anonKey =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
     if (!url || !anonKey) {
       throw new Error("Supabase no configurado en el cliente");
     }
@@ -39,11 +42,13 @@ export function getSupabaseBrowserClient(): TypedSupabaseClient {
 }
 
 export function isSupabaseConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      (process.env.SUPABASE_SERVICE_ROLE_KEY ||
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  return Boolean(url && key);
 }
 
 export interface LogInteractionInput {
@@ -62,7 +67,7 @@ export async function logInteraction(
 
   try {
     const supabase = createSupabaseClient();
-    await supabase.from("interactions").insert({
+    const { error } = await supabase.from("interactions").insert({
       module_id: input.moduleId,
       event_type: input.eventType,
       input_text: input.inputText ?? null,
@@ -70,6 +75,9 @@ export async function logInteraction(
       audio_url: input.audioUrl ?? null,
       metadata: (input.metadata ?? {}) as Json,
     });
+    if (error && process.env.NODE_ENV === "development") {
+      console.warn("[supabase] logInteraction:", error.message);
+    }
   } catch {
     /* no bloquear flujo principal */
   }
@@ -84,12 +92,15 @@ export async function logIotEvent(
 
   try {
     const supabase = createSupabaseClient();
-    await supabase.from("iot_events").insert({
+    const { error } = await supabase.from("iot_events").insert({
       action,
       led_state: ledState ?? null,
       device_connected: true,
       payload: (payload ?? {}) as Json,
     });
+    if (error && process.env.NODE_ENV === "development") {
+      console.warn("[supabase] logIotEvent:", error.message);
+    }
   } catch {
     /* no bloquear */
   }

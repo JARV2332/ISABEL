@@ -1,5 +1,5 @@
--- ISABEL — tablas para buildathon
--- Ejecutar en Supabase SQL Editor
+-- ISABEL — setup completo Supabase (pegar en SQL Editor o scripts/supabase-setup.mjs)
+-- Tablas + RLS lectura/escritura para clave publishable/anon
 
 create table if not exists public.interactions (
   id uuid primary key default gen_random_uuid(),
@@ -29,6 +29,11 @@ create index if not exists iot_events_created_at_idx
 
 alter table public.interactions enable row level security;
 alter table public.iot_events enable row level security;
+
+drop policy if exists "Allow public read interactions" on public.interactions;
+drop policy if exists "Allow public read iot_events" on public.iot_events;
+drop policy if exists "Allow public insert interactions" on public.interactions;
+drop policy if exists "Allow public insert iot_events" on public.iot_events;
 
 create policy "Allow public read interactions"
   on public.interactions for select using (true);

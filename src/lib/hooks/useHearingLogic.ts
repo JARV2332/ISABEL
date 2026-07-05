@@ -244,6 +244,17 @@ export function useHearingLogic() {
 
       void requestTts(text);
 
+      void fetch("/api/interactions/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId: "hearing",
+          eventType: "hearing.transcribe",
+          inputText: text,
+          outputText: text,
+        }),
+      });
+
       try {
         await submit({
           event: "hearing.transcribe",

@@ -46,8 +46,7 @@ export function getServicesStatus(): ServiceStatus[] {
       configured: isSupabaseConfigured(),
       envVars: [
         "NEXT_PUBLIC_SUPABASE_URL",
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-        "SUPABASE_SERVICE_ROLE_KEY (para escribir logs)",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY (o publishable key)",
       ],
       docsPath: "docs/SETUP-CUENTAS.md#4-supabase",
     },

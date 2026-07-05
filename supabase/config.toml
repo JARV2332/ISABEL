@@ -1,0 +1,5 @@
+# Supabase local development — https://supabase.com/docs/guides/cli/config
+project_id = "bcenynihnygjsdyjpetf"
+
+[db]
+major_version = 15
