@@ -3,6 +3,7 @@ import type { ModuleInterface } from "@/types/module";
 export const speechModule: ModuleInterface = {
   id: "speech",
   name: "Habla",
+  navLabel: "Asistencia del Habla",
   description: "Asistencia para personas con discapacidad del habla",
   status: "idle",
   route: "/modulos/habla",

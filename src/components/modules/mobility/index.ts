@@ -3,6 +3,7 @@ import type { ModuleInterface } from "@/types/module";
 export const mobilityModule: ModuleInterface = {
   id: "mobility",
   name: "Movilidad",
+  navLabel: "Asistencia Móvil",
   description: "Lugares accesibles cerca de ti (mundial), rutas, transporte y comunicación por pictogramas",
   status: "idle",
   route: "/modulos/movilidad",

@@ -3,6 +3,7 @@ import type { ModuleInterface } from "@/types/module";
 export const hearingModule: ModuleInterface = {
   id: "hearing",
   name: "Asistencia para personas con discapacidad auditiva",
+  navLabel: "Asistencia Auditiva",
   description:
     "Elige cómo deseas comunicarte. ISABEL adaptará la conversación automáticamente.",
   status: "idle",

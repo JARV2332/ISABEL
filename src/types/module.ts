@@ -26,6 +26,8 @@ export interface ModuleInterface {
   id: ModuleId;
   /** Nombre visible para el usuario */
   name: string;
+  /** Etiqueta corta para la barra de navegación principal */
+  navLabel?: string;
   /** Descripción breve de la funcionalidad */
   description: string;
   /** Estado operativo actual */

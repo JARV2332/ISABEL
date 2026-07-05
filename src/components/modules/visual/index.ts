@@ -3,6 +3,7 @@ import type { ModuleInterface } from "@/types/module";
 export const visualModule: ModuleInterface = {
   id: "visual",
   name: "Visual",
+  navLabel: "Asistencia Visual",
   description: "Orientación en espacios físicos, lectura de texto y PDF en voz alta",
   status: "idle",
   route: "/modulos/visual",

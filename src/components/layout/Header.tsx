@@ -84,7 +84,7 @@ export function Header() {
                     {Icon && (
                       <Icon className="size-4 shrink-0" aria-hidden="true" />
                     )}
-                    <span>{module.name}</span>
+                    <span>{module.navLabel ?? module.name}</span>
                   </Link>
                 </li>
               );
@@ -146,7 +146,7 @@ export function Header() {
                     {Icon && (
                       <Icon className="size-5 shrink-0" aria-hidden="true" />
                     )}
-                    <span>{module.name}</span>
+                    <span>{module.navLabel ?? module.name}</span>
                   </Link>
                 </li>
               );
