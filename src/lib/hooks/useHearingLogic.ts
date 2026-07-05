@@ -242,6 +242,8 @@ export function useHearingLogic() {
       setIsaResponse(`Interpretando en señas: «${text}»`);
       setStatus("active");
 
+      void requestTts(text);
+
       try {
         await submit({
           event: "hearing.transcribe",
@@ -261,7 +263,7 @@ export function useHearingLogic() {
         variant: "destructive",
       });
     }
-  }, [isListening, syncWords, submit, toast]);
+  }, [isListening, syncWords, submit, toast, requestTts]);
 
   const clearSession = useCallback(() => {
     recognitionRef.current?.abort();

@@ -385,6 +385,29 @@ export function HearingInterface({ module = hearingModule }: ModuleViewProps) {
               <Panel variant="accent" as="output">
                 <p className="text-xl font-semibold leading-relaxed">{output}</p>
               </Panel>
+              {mic.isaVoiceText && (
+                <div className="mt-5 flex flex-wrap items-center gap-4">
+                  <Button
+                    type="button"
+                    variant="accent"
+                    disabled={mic.isLoadingTts}
+                    onClick={() => void mic.replayIsaVoice()}
+                    aria-label="Escuchar texto con voz ISA"
+                  >
+                    <Volume2 aria-hidden="true" />
+                    {mic.isLoadingTts
+                      ? "Generando voz…"
+                      : mic.isSpeaking
+                        ? "Reproduciendo…"
+                        : "Escuchar audio"}
+                  </Button>
+                  {mic.lastAudioError && (
+                    <p className="text-lg font-medium text-amber-700" role="status">
+                      {mic.lastAudioError}
+                    </p>
+                  )}
+                </div>
+              )}
             </section>
           )}
         </>
