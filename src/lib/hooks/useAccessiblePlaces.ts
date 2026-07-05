@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useToast } from "@/components/ui/toast";
 import {
-  GUATEMALA_CENTER,
   SEARCH_RADIUS_METERS,
   SEARCH_RADIUS_KM,
 } from "@/lib/geo/places-utils";
@@ -136,18 +135,10 @@ export function useAccessiblePlaces() {
     setLocationError(null);
 
     if (!navigator.geolocation) {
-      setLocationError("Tu navegador no soporta geolocalización.");
-      setLocation({
-        latitude: GUATEMALA_CENTER.latitude,
-        longitude: GUATEMALA_CENTER.longitude,
-        label: GUATEMALA_CENTER.label,
-      });
-      setIsLocating(false);
-      await searchNearby(
-        GUATEMALA_CENTER.latitude,
-        GUATEMALA_CENTER.longitude,
-        category
+      setLocationError(
+        "Tu navegador no soporta geolocalización. Actívala o prueba en otro dispositivo."
       );
+      setIsLocating(false);
       return;
     }
 
@@ -162,21 +153,11 @@ export function useAccessiblePlaces() {
         setIsLocating(false);
         await searchNearby(loc.latitude, loc.longitude, category);
       },
-      async () => {
+      () => {
         setLocationError(
-          "No pudimos obtener tu ubicación. Usando referencia en Ciudad de Guatemala."
+          "No pudimos obtener tu ubicación. Permite el acceso a la ubicación en tu navegador y vuelve a intentar."
         );
-        setLocation({
-          latitude: GUATEMALA_CENTER.latitude,
-          longitude: GUATEMALA_CENTER.longitude,
-          label: GUATEMALA_CENTER.label,
-        });
         setIsLocating(false);
-        await searchNearby(
-          GUATEMALA_CENTER.latitude,
-          GUATEMALA_CENTER.longitude,
-          category
-        );
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
     );

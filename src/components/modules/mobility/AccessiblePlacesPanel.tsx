@@ -376,7 +376,7 @@ export function AccessiblePlacesPanel() {
           Usamos la ubicación de tu dispositivo para buscar hospitales, bancos,
           baños y más en un radio de{" "}
           <strong className="text-[var(--module-fg)]">{searchRadiusKm} km</strong>.
-          Funciona en cualquier país.
+          Datos de OpenStreetMap en cualquier país del mundo.
         </p>
       </div>
 
