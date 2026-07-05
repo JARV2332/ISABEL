@@ -5,6 +5,7 @@ import {
   FileText,
   FileUp,
   MapPin,
+  PencilLine,
   RotateCcw,
   Volume2,
   VolumeX,
@@ -14,6 +15,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ModuleShell } from "@/components/modules/ModuleShell";
 import { SpaceGuidePanel } from "@/components/modules/visual/SpaceGuidePanel";
+import { HandwritingBoard } from "@/components/shared/HandwritingBoard";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { TabGroup } from "@/components/ui/tab-group";
@@ -23,10 +25,11 @@ import { visualModule } from "@/lib/module-registry";
 import { cn } from "@/lib/utils";
 import type { ModuleViewProps } from "@/types/module";
 
-type InputMode = "text" | "pdf" | "spaces";
+type InputMode = "text" | "pdf" | "spaces" | "handwriting";
 
 const INPUT_TABS = [
   { id: "spaces" as const, label: "Espacios", icon: MapPin },
+  { id: "handwriting" as const, label: "Pizarra", icon: PencilLine },
   { id: "text" as const, label: "Texto", icon: FileText },
   { id: "pdf" as const, label: "PDF", icon: FileUp },
 ];
@@ -70,6 +73,14 @@ export function VisualInterface({ module = visualModule }: ModuleViewProps) {
       options: { spaceId: string; sectionId?: string; silent?: boolean }
     ) => {
       await visual.processText(text, options);
+    },
+    [visual]
+  );
+
+  const handleHandwritingConfirm = useCallback(
+    async (text: string) => {
+      visual.setInput(text);
+      await visual.processText(text);
     },
     [visual]
   );
@@ -143,6 +154,11 @@ export function VisualInterface({ module = visualModule }: ModuleViewProps) {
                 describe mobiliario, accesibilidad y cómo pedir ayuda en voz
                 alta.
               </>
+            ) : inputMode === "handwriting" ? (
+              <>
+                Escribe a mano en la pizarra. ISA leerá tu texto en voz alta
+                después de que lo revises y confirmes.
+              </>
             ) : (
               <>
                 Escribe, pega texto o sube un PDF. ISA lo leerá{" "}
@@ -172,6 +188,21 @@ export function VisualInterface({ module = visualModule }: ModuleViewProps) {
                 selectedSpaceId={selectedSpaceId}
                 onSelectSpace={setSelectedSpaceId}
                 onRead={handleReadSpace}
+              />
+            </div>
+          ) : inputMode === "handwriting" ? (
+            <div
+              id="panel-handwriting"
+              role="tabpanel"
+              aria-labelledby="tab-handwriting"
+            >
+              <HandwritingBoard
+                moduleId="visual"
+                disabled={busy}
+                context={visual.input}
+                confirmLabel="Leer con ISA"
+                readLabel="Leer trazo"
+                onConfirm={handleHandwritingConfirm}
               />
             </div>
           ) : inputMode === "text" ? (

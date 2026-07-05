@@ -3,18 +3,24 @@
  * recorte al contenido, escala, binarización y engrosado de trazo.
  */
 
-const INK_THRESHOLD = 225;
-const MIN_OUTPUT = 512;
-const CROP_PADDING = 28;
+const INK_LUMINANCE = 200;
+const MIN_OUTPUT = 768;
+const CROP_PADDING = 36;
 
-function isInk(lum: number): boolean {
-  return lum < INK_THRESHOLD;
+function luminance(r: number, g: number, b: number): number {
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+function isInk(r: number, g: number, b: number): boolean {
+  if (luminance(r, g, b) < INK_LUMINANCE) return true;
+  return 255 - r + (255 - g) + (255 - b) > 120;
 }
 
 function dilateStrokes(
   pixels: Uint8ClampedArray,
   width: number,
-  height: number
+  height: number,
+  radius = 1
 ): Uint8ClampedArray {
   const out = new Uint8ClampedArray(pixels.length);
 
@@ -31,8 +37,8 @@ function dilateStrokes(
       let ink = pixels[idx] === 0;
 
       if (!ink) {
-        for (let dy = -1; dy <= 1 && !ink; dy++) {
-          for (let dx = -1; dx <= 1 && !ink; dx++) {
+        for (let dy = -radius; dy <= radius && !ink; dy++) {
+          for (let dx = -radius; dx <= radius && !ink; dx++) {
             const ny = y + dy;
             const nx = x + dx;
             if (ny < 0 || ny >= height || nx < 0 || nx >= width) continue;
@@ -53,26 +59,26 @@ function dilateStrokes(
   return out;
 }
 
-function binarizeImageData(imageData: ImageData): void {
+function binarizeImageData(imageData: ImageData, thicken = true): void {
   const { data, width, height } = imageData;
   const pixels = data;
 
   for (let i = 0; i < pixels.length; i += 4) {
-    const lum =
-      0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
-
-    const ink = isInk(lum) ? 0 : 255;
+    const ink = isInk(pixels[i], pixels[i + 1], pixels[i + 2]) ? 0 : 255;
     pixels[i] = ink;
     pixels[i + 1] = ink;
     pixels[i + 2] = ink;
     pixels[i + 3] = 255;
   }
 
-  const thickened = dilateStrokes(pixels, width, height);
-  pixels.set(thickened);
+  if (thicken) {
+    const thickened = dilateStrokes(pixels, width, height, 1);
+    const twice = dilateStrokes(thickened, width, height, 1);
+    pixels.set(twice);
+  }
 }
 
-function findInkBounds(imageData: ImageData): {
+function findInkBounds(imageData: ImageData, inkValue = 0): {
   minX: number;
   minY: number;
   maxX: number;
@@ -88,7 +94,7 @@ function findInkBounds(imageData: ImageData): {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = (y * width + x) * 4;
-      if (data[idx] === 0) {
+      if (data[idx] === inkValue) {
         found = true;
         if (x < minX) minX = x;
         if (y < minY) minY = y;
@@ -126,7 +132,10 @@ function scaleToMinimum(
   return out;
 }
 
-export async function enhanceHandwritingImage(dataUrl: string): Promise<string> {
+export async function prepareHandwritingImage(
+  dataUrl: string,
+  mode: "enhanced" | "simple" = "enhanced"
+): Promise<string> {
   if (typeof window === "undefined") {
     return dataUrl.includes(",") ? (dataUrl.split(",")[1] ?? dataUrl) : dataUrl;
   }
@@ -147,11 +156,29 @@ export async function enhanceHandwritingImage(dataUrl: string): Promise<string> 
       sourceCtx.fillRect(0, 0, source.width, source.height);
       sourceCtx.drawImage(img, 0, 0);
 
-      const sourceImage = sourceCtx.getImageData(0, 0, source.width, source.height);
-      binarizeImageData(sourceImage);
-      sourceCtx.putImageData(sourceImage, 0, 0);
+      if (mode === "enhanced") {
+        const sourceImage = sourceCtx.getImageData(
+          0,
+          0,
+          source.width,
+          source.height
+        );
+        binarizeImageData(sourceImage, true);
+        sourceCtx.putImageData(sourceImage, 0, 0);
+      } else {
+        const sourceImage = sourceCtx.getImageData(
+          0,
+          0,
+          source.width,
+          source.height
+        );
+        binarizeImageData(sourceImage, false);
+        sourceCtx.putImageData(sourceImage, 0, 0);
+      }
 
-      const bounds = findInkBounds(sourceImage);
+      const bounds = findInkBounds(
+        sourceCtx.getImageData(0, 0, source.width, source.height)
+      );
       let cropped = source;
 
       if (bounds) {
@@ -186,9 +213,11 @@ export async function enhanceHandwritingImage(dataUrl: string): Promise<string> 
         return;
       }
 
-      const finalData = scaledCtx.getImageData(0, 0, scaled.width, scaled.height);
-      binarizeImageData(finalData);
-      scaledCtx.putImageData(finalData, 0, 0);
+      if (mode === "enhanced") {
+        const finalData = scaledCtx.getImageData(0, 0, scaled.width, scaled.height);
+        binarizeImageData(finalData, true);
+        scaledCtx.putImageData(finalData, 0, 0);
+      }
 
       const out = scaled.toDataURL("png");
       resolve(out.includes(",") ? (out.split(",")[1] ?? out) : out);
@@ -198,4 +227,9 @@ export async function enhanceHandwritingImage(dataUrl: string): Promise<string> 
       ? dataUrl
       : `data:image/png;base64,${dataUrl}`;
   });
+}
+
+/** @deprecated Usa prepareHandwritingImage — mantiene compatibilidad */
+export async function enhanceHandwritingImage(dataUrl: string): Promise<string> {
+  return prepareHandwritingImage(dataUrl, "enhanced");
 }
