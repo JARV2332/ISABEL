@@ -19,16 +19,7 @@ Deploy directo: `https://isabel-lake.vercel.app/ISABEL`
 
 ## EDUGUIA
 
-`vercel.json` incluye:
-
-```json
-{
-  "source": "/ISABEL/:path*",
-  "destination": "https://isabel-lake.vercel.app/ISABEL/:path*"
-}
-```
-
-El header y la home tienen enlace **ISABEL** → `/ISABEL`.
+`next.config.mjs` incluye rewrites `beforeFiles` hacia ISABEL (prioridad sobre rutas internas) y el middleware **no** intercepta `/ISABEL`.
 
 ## Verificación
 
