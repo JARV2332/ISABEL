@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { findNearbyAccessiblePlaces } from "@/lib/services/accessible-places";
+import { logInteraction } from "@/lib/services/interactions";
 import { SEARCH_RADIUS_METERS } from "@/lib/geo/places-utils";
 import type { PlaceCategory } from "@/types/accessible-places";
 
@@ -41,6 +42,21 @@ export async function GET(request: NextRequest) {
       longitude: lng,
       category,
       radiusMeters: Number.isFinite(radius) ? radius : SEARCH_RADIUS_METERS,
+    });
+
+    void logInteraction({
+      moduleId: "mobility",
+      eventType: "mobility.places-search",
+      inputText: `${category} @ ${lat.toFixed(4)},${lng.toFixed(4)}`,
+      outputText: `${result.places.length} lugares`,
+      metadata: {
+        category,
+        latitude: lat,
+        longitude: lng,
+        locationLabel: result.locationLabel,
+        searchRadiusKm: result.searchRadiusKm,
+        hasCuratedSeed: result.hasCuratedSeed,
+      },
     });
 
     return NextResponse.json(result);

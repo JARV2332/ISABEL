@@ -1,5 +1,6 @@
 import { filterSeedByCategory, GUATEMALA_SEED_PLACES } from "@/lib/data/guatemala-places-seed";
 import {
+  fetchReverseGeocodeLabel,
   haversineMeters,
   isInGuatemala,
   SEARCH_RADIUS_METERS,
@@ -149,7 +150,8 @@ export async function findNearbyAccessiblePlaces(options: {
   includeOsm?: boolean;
 }): Promise<{
   places: AccessiblePlace[];
-  inGuatemala: boolean;
+  /** true si hay lugares curados extra de Guatemala en el resultado */
+  hasCuratedSeed: boolean;
   locationLabel: string;
   searchRadiusMeters: number;
   searchRadiusKm: number;
@@ -164,12 +166,10 @@ export async function findNearbyAccessiblePlaces(options: {
 
   const inGt = isInGuatemala(latitude, longitude);
 
-  let combined: AccessiblePlace[] = seedWithinRadius(
-    latitude,
-    longitude,
-    category,
-    radiusMeters
-  );
+  // OpenStreetMap cubre todo el mundo; seed curado solo en Guatemala.
+  let combined: AccessiblePlace[] = inGt
+    ? seedWithinRadius(latitude, longitude, category, radiusMeters)
+    : [];
 
   if (includeOsm) {
     try {
@@ -199,10 +199,13 @@ export async function findNearbyAccessiblePlaces(options: {
     };
   });
 
+  const locationLabel = await fetchReverseGeocodeLabel(latitude, longitude);
+  const hasCuratedSeed = inGt && combined.some((p) => p.source === "seed");
+
   return {
     places: combined.slice(0, 50),
-    inGuatemala: inGt,
-    locationLabel: inGt ? "Guatemala" : "Ubicación detectada",
+    hasCuratedSeed,
+    locationLabel,
     searchRadiusMeters: radiusMeters,
     searchRadiusKm: Math.round(radiusMeters / 1000),
   };

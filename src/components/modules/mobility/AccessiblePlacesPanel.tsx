@@ -351,7 +351,7 @@ export function AccessiblePlacesPanel() {
     places,
     selectedPlace,
     setSelectedPlace,
-    inGuatemala,
+    hasCuratedSeed,
     locationLabel,
     searchRadiusKm,
     detectLocation,
@@ -369,13 +369,14 @@ export function AccessiblePlacesPanel() {
             <MapPin className="size-5 sm:size-6" aria-hidden="true" />
           </span>
           <span className="text-xl font-extrabold leading-tight text-[var(--module-fg)] sm:text-2xl">
-            Lugares accesibles — Guatemala
+            Lugares accesibles cerca de ti
           </span>
         </h2>
         <p className="text-sm leading-relaxed text-[var(--module-muted-fg)] sm:text-base">
-          Buscamos hospitales, bancos, baños y más a{" "}
-          <strong className="text-[var(--module-fg)]">{searchRadiusKm} km</strong> a
-          la redonda de tu ubicación.
+          Usamos la ubicación de tu dispositivo para buscar hospitales, bancos,
+          baños y más en un radio de{" "}
+          <strong className="text-[var(--module-fg)]">{searchRadiusKm} km</strong>.
+          Funciona en cualquier país.
         </p>
       </div>
 
@@ -420,16 +421,14 @@ export function AccessiblePlacesPanel() {
         >
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-medium text-[var(--module-fg)]">
             <Accessibility className="size-4 shrink-0 text-[var(--module-accent)]" />
-            <span>{location.label}</span>
-            <span className="text-[var(--module-muted-fg)]">·</span>
-            <span>{locationLabel}</span>
+            <span>{locationLabel || "Detectando…"}</span>
             <span className="text-[var(--module-muted-fg)]">·</span>
             <span>Radio {searchRadiusKm} km</span>
           </p>
           {!isSearching && (
             <p className="mt-1 text-[var(--module-muted-fg)]">
               {places.length} lugar(es) encontrado(s)
-              {!inGuatemala && " — incluye datos de referencia en Guatemala"}
+              {hasCuratedSeed && " · incluye lugares verificados en Guatemala"}
             </p>
           )}
         </div>

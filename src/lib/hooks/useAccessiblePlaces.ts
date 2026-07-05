@@ -82,8 +82,8 @@ export function useAccessiblePlaces() {
   const [places, setPlaces] = useState<AccessiblePlace[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<AccessiblePlace | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [inGuatemala, setInGuatemala] = useState(true);
-  const [locationLabel, setLocationLabel] = useState("Guatemala");
+  const [hasCuratedSeed, setHasCuratedSeed] = useState(false);
+  const [locationLabel, setLocationLabel] = useState("");
   const [searchRadiusKm, setSearchRadiusKm] = useState(SEARCH_RADIUS_KM);
   const hasAutoLocated = useRef(false);
 
@@ -102,7 +102,7 @@ export function useAccessiblePlaces() {
         });
         const data = (await response.json()) as {
           places?: AccessiblePlace[];
-          inGuatemala?: boolean;
+          hasCuratedSeed?: boolean;
           locationLabel?: string;
           searchRadiusKm?: number;
           error?: string;
@@ -114,8 +114,8 @@ export function useAccessiblePlaces() {
 
         const merged = applyLocalReports(data.places ?? []);
         setPlaces(merged);
-        setInGuatemala(data.inGuatemala ?? true);
-        setLocationLabel(data.locationLabel ?? "Guatemala");
+        setHasCuratedSeed(data.hasCuratedSeed ?? false);
+        setLocationLabel(data.locationLabel ?? "Tu ubicación");
         setSearchRadiusKm(data.searchRadiusKm ?? SEARCH_RADIUS_KM);
       } catch (err) {
         toast({
@@ -164,7 +164,7 @@ export function useAccessiblePlaces() {
       },
       async () => {
         setLocationError(
-          "No pudimos obtener tu ubicación. Mostrando Ciudad de Guatemala."
+          "No pudimos obtener tu ubicación. Usando referencia en Ciudad de Guatemala."
         );
         setLocation({
           latitude: GUATEMALA_CENTER.latitude,
@@ -248,7 +248,7 @@ export function useAccessiblePlaces() {
     places,
     selectedPlace,
     setSelectedPlace,
-    inGuatemala,
+    hasCuratedSeed,
     locationLabel,
     searchRadiusKm,
     detectLocation,

@@ -66,3 +66,49 @@ export const GUATEMALA_CENTER = {
 export function isInGuatemala(lat: number, lng: number): boolean {
   return lat >= 13.5 && lat <= 17.9 && lng >= -92.5 && lng <= -88.0;
 }
+
+/** Ciudad/país a partir de coordenadas (OpenStreetMap Nominatim). Funciona worldwide. */
+export async function fetchReverseGeocodeLabel(
+  lat: number,
+  lng: number
+): Promise<string> {
+  try {
+    const url = new URL("https://nominatim.openstreetmap.org/reverse");
+    url.searchParams.set("lat", String(lat));
+    url.searchParams.set("lon", String(lng));
+    url.searchParams.set("format", "json");
+    url.searchParams.set("zoom", "10");
+    url.searchParams.set("accept-language", "es");
+
+    const response = await fetch(url.toString(), {
+      headers: { "User-Agent": "ISABEL-Accessibility/1.0 (mobility-places)" },
+      cache: "no-store",
+    });
+
+    if (!response.ok) return "Tu ubicación";
+
+    const data = (await response.json()) as {
+      display_name?: string;
+      address?: Record<string, string>;
+    };
+
+    const addr = data.address ?? {};
+    const city =
+      addr.city ??
+      addr.town ??
+      addr.village ??
+      addr.municipality ??
+      addr.county ??
+      addr.state;
+    const country = addr.country;
+
+    if (city && country) return `${city}, ${country}`;
+    if (country) return country;
+    if (data.display_name) {
+      return data.display_name.split(",").slice(0, 2).join(",").trim();
+    }
+    return "Tu ubicación";
+  } catch {
+    return "Tu ubicación";
+  }
+}
