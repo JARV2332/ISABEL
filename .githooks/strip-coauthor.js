@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Removes Cursor co-author trailers from a commit message file or stdin. */
+/** Strips Cursor co-author trailers; rewrites commit msg filter (stdin/stdout). */
 const fs = require("fs");
 
 const CURSOR_LINE =
@@ -9,6 +9,12 @@ function clean(text) {
   return text
     .split(/\r?\n/)
     .filter((line) => !CURSOR_LINE.test(line))
+    .map((line) =>
+      line
+        .replace(/co-autor de Cursor/gi, "co-autores no deseados")
+        .replace(/coautoria de Cursor/gi, "coautoria no deseada")
+        .replace(/Cursor en commits/gi, "en commits")
+    )
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
     .trimEnd();
@@ -18,8 +24,7 @@ const file = process.argv[2];
 
 if (file) {
   const content = fs.readFileSync(file, "utf8");
-  const cleaned = clean(content);
-  fs.writeFileSync(file, cleaned ? `${cleaned}\n` : "");
+  fs.writeFileSync(file, clean(content) ? `${clean(content)}\n` : "");
 } else {
   let data = "";
   process.stdin.setEncoding("utf8");
