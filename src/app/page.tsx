@@ -23,7 +23,7 @@ export default function HomePage() {
         className="human-surface flex flex-col items-start gap-6 rounded-[2.5rem] border-2 border-white/80 p-8 sm:flex-row sm:items-center sm:p-10"
       >
         <Image
-          src="/logo.png"
+          src="/logo-icon.png"
           alt="Logo ISABEL EDUKIDS — accesibilidad visual, auditiva, habla y movilidad"
           width={120}
           height={120}

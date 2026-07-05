@@ -9,7 +9,8 @@
     "lint": "eslint",
     "signs:split-alphabet": "node scripts/split-lsm-alphabet.mjs",
     "supabase:setup": "node scripts/supabase-setup.mjs",
-    "signs:strip-bg": "node scripts/strip-checkerboard.mjs"
+    "signs:strip-bg": "node scripts/strip-checkerboard.mjs",
+    "icons:generate": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

@@ -39,7 +39,7 @@ export function Header() {
           aria-label="ISABEL - Inicio, estación de accesibilidad EDUKIDS"
         >
           <Image
-            src="/logo.png"
+            src="/logo-icon.png"
             alt=""
             width={44}
             height={44}
