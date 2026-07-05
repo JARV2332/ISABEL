@@ -63,9 +63,11 @@ export default function RootLayout({
       className={`${plusJakarta.variable} ${geistMono.variable} h-full font-sans`}
     >
       <body className="flex min-h-full flex-col">
-        <Providers>
-          <Layout>{children}</Layout>
-        </Providers>
+        <div id="a11y-root" className="flex min-h-full flex-1 flex-col">
+          <Providers>
+            <Layout>{children}</Layout>
+          </Providers>
+        </div>
       </body>
     </html>
   );

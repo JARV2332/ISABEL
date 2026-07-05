@@ -263,3 +263,67 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* ─── Accesibilidad: lector inmersivo y daltónicos ─── */
+
+html.a11y-protanopia #a11y-root {
+  filter: url(#a11y-protanopia);
+}
+
+html.a11y-deuteranopia #a11y-root {
+  filter: url(#a11y-deuteranopia);
+}
+
+html.a11y-tritanopia #a11y-root {
+  filter: url(#a11y-tritanopia);
+}
+
+html.immersive-reader {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #0b1f3a;
+  --card-foreground: #ffffff;
+  --muted-foreground: #e2e8f0;
+  --border: #fbbf24;
+  --ring: #fbbf24;
+}
+
+html.immersive-reader body {
+  background: #000 !important;
+}
+
+html.immersive-reader main,
+html.immersive-reader header {
+  position: relative;
+  z-index: 9985;
+}
+
+html.immersive-reader .immersive-reader-scrim {
+  background: rgb(0 0 0 / 0.35);
+}
+
+html.immersive-reader .immersive-reader-banner {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+
+html.immersive-reader .immersive-reader-highlight {
+  outline: 4px solid #fbbf24 !important;
+  outline-offset: 4px;
+  background: rgb(251 191 36 / 0.18) !important;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 6px rgb(251 191 36 / 0.25);
+}
+
+html.immersive-reader a,
+html.immersive-reader button,
+html.immersive-reader [role="button"] {
+  cursor: pointer;
+}
+
+html.immersive-reader main p,
+html.immersive-reader main li,
+html.immersive-reader main h1,
+html.immersive-reader main h2,
+html.immersive-reader main h3 {
+  cursor: pointer;
+}
