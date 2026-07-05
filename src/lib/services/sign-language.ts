@@ -12,7 +12,7 @@ import type {
   SignUnit,
 } from "@/types/sign-language";
 
-/** Glosario básico LSM para frases frecuentes en EDUKIDS */
+/** Glosario básico LSM para frases frecuentes en ISABEL */
 const LSM_GLOSSARY: Record<string, Omit<SignUnit, "gloss">> = {
   "como estas": { label: "¿Cómo estás?", icon: "🫵" },
   "que tal": { label: "¿Qué tal?", icon: "👋" },

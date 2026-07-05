@@ -24,7 +24,7 @@ export default function HomePage() {
       >
         <Image
           src="/logo-icon.png"
-          alt="Logo ISABEL EDUKIDS — accesibilidad visual, auditiva, habla y movilidad"
+          alt="Logo ISABEL — accesibilidad visual, auditiva, habla y movilidad"
           width={120}
           height={120}
           className="size-28 shrink-0 rounded-3xl shadow-xl"
@@ -38,7 +38,7 @@ export default function HomePage() {
             Bienvenido a ISABEL
           </h1>
           <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Estación inteligente de accesibilidad para EDUKIDS. Cuatro módulos,
+            Estación inteligente de accesibilidad. Cuatro módulos,
             un mismo corazón conectado — elige por dónde empezar.
           </p>
         </div>

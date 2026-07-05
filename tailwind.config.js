@@ -50,7 +50,7 @@ module.exports = {
             950: "#083344",
           },
         },
-        edukids: {
+        isabel: {
           visual: { DEFAULT: "#F97316", light: "#FBBF24" },
           hearing: { DEFAULT: "#0EA5E9", light: "#22D3EE" },
           speech: { DEFAULT: "#DB2777", light: "#EC4899" },

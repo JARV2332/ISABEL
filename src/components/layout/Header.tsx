@@ -36,7 +36,7 @@ export function Header() {
         <Link
           href="/"
           className="flex items-center gap-3 rounded-2xl transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400/40"
-          aria-label="ISABEL - Inicio, estación de accesibilidad EDUKIDS"
+          aria-label="ISABEL - Inicio, estación de accesibilidad"
         >
           <Image
             src="/logo-icon.png"
@@ -46,13 +46,8 @@ export function Header() {
             className="size-11 rounded-xl shadow-md"
             priority
           />
-          <span className="hidden flex-col sm:flex">
-            <span className="text-lg font-extrabold tracking-tight text-foreground">
-              ISABEL
-            </span>
-            <span className="text-xs font-semibold text-muted-foreground">
-              EDUKIDS
-            </span>
+          <span className="hidden text-lg font-extrabold tracking-tight text-foreground sm:inline">
+            ISABEL
           </span>
         </Link>
 

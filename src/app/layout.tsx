@@ -22,11 +22,11 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://isabel-lake.vercel.app"
   ),
   title: {
-    default: "ISABEL — Estación de Accesibilidad EDUKIDS",
+    default: "ISABEL — Estación de Accesibilidad",
     template: "%s | ISABEL",
   },
   description:
-    "Estación inteligente de accesibilidad para EDUKIDS. Módulos de audición, habla, visual y movilidad.",
+    "Estación inteligente de accesibilidad. Módulos de audición, habla, visual y movilidad.",
   icons: {
     icon: [
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
@@ -37,18 +37,18 @@ export const metadata: Metadata = {
     shortcut: ["/favicon-32.png"],
   },
   openGraph: {
-    title: "ISABEL — Estación de Accesibilidad EDUKIDS",
+    title: "ISABEL — Estación de Accesibilidad",
     description:
-      "Estación inteligente de accesibilidad para EDUKIDS. Módulos de audición, habla, visual y movilidad.",
+      "Estación inteligente de accesibilidad. Módulos de audición, habla, visual y movilidad.",
     type: "website",
     locale: "es_GT",
     siteName: "ISABEL",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ISABEL — Estación de Accesibilidad EDUKIDS",
+    title: "ISABEL — Estación de Accesibilidad",
     description:
-      "Estación inteligente de accesibilidad para EDUKIDS. Módulos de audición, habla, visual y movilidad.",
+      "Estación inteligente de accesibilidad. Módulos de audición, habla, visual y movilidad.",
   },
 };
 

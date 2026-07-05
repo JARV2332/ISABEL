@@ -1,6 +1,6 @@
 import type { ModuleId } from "@/types/module";
 
-/** Paleta EDUKIDS — cuadrantes del logo ISABEL */
+/** Paleta ISABEL — cuadrantes del logo */
 export interface ModuleTheme {
   id: ModuleId;
   label: string;

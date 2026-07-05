@@ -1,6 +1,6 @@
 # ISABEL — Arquitectura del Proyecto
 
-> Estación inteligente de accesibilidad para EDUKIDS  
+> Estación inteligente de accesibilidad  
 > Enfoque: **Feature-First Architecture** (orientada a funcionalidades)
 
 ## Visión general

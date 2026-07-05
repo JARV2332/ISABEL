@@ -170,7 +170,7 @@ Ejemplo de voz multilingüe por defecto si no pones ID: `EXAVITQu4vr4xnSDxMaL` (
 ```powershell
 curl -X POST http://localhost:3000/api/tts `
   -H "Content-Type: application/json" `
-  -d '{"text":"Hola, soy ISA de EDUKIDS"}' `
+  -d '{"text":"Hola, soy ISA de ISABEL"}' `
   --output prueba-isa.mp3
 ```
 

@@ -1,4 +1,4 @@
-# ISABEL — Estación de Accesibilidad EDUKIDS
+# ISABEL — Estación de Accesibilidad
 
 Estación web inteligente con 4 módulos: **Audición**, **Habla**, **Visual** y **Movilidad**.
 

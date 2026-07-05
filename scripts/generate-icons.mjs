@@ -44,4 +44,4 @@ writeFileSync(
   await toIco([icon32, icon48, await buildSquareIcon(16)])
 );
 
-console.log("Iconos favicon generados (logo EDUKIDS recortado y cuadrado).");
+console.log("Iconos favicon generados (logo ISABEL recortado y cuadrado).");

@@ -95,7 +95,7 @@ export function ModuleShell({
               className="text-sm font-bold uppercase tracking-widest"
               style={{ color: theme.accent }}
             >
-              Módulo EDUKIDS · {theme.label}
+              Módulo ISABEL · {theme.label}
             </p>
             <h1
               id="module-title"
