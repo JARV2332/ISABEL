@@ -19,7 +19,9 @@ function getVisionProvider(): {
     return {
       apiKey: process.env.GROQ_API_KEY,
       baseUrl: process.env.GROQ_BASE_URL ?? "https://api.groq.com/openai/v1",
-      model: process.env.GROQ_VISION_MODEL ?? "llama-3.2-11b-vision-preview",
+      model:
+        process.env.GROQ_VISION_MODEL ??
+        "meta-llama/llama-4-scout-17b-16e-instruct",
     };
   }
   if (process.env.OPENAI_API_KEY) {

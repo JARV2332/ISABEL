@@ -46,6 +46,7 @@ export function SmartBoard({
   const scanTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasStrokesRef = useRef(false);
 
+  const [hasStrokes, setHasStrokes] = useState(false);
   const [recognizedText, setRecognizedText] = useState<string | null>(null);
   const [internalRecognizing, setInternalRecognizing] = useState(false);
   const [scanMode, setScanMode] = useState(false);
@@ -56,7 +57,10 @@ export function SmartBoard({
   const isBusy = isRecognizing || isProcessingIsa;
 
   const exportAndRecognize = useCallback(async () => {
-    if (!canvasRef.current || !hasStrokesRef.current) return;
+    if (!canvasRef.current || !hasStrokesRef.current) {
+      setError("Escribe algo en la pizarra antes de tocar «Hablar».");
+      return;
+    }
 
     setInternalRecognizing(true);
     setError(null);
@@ -102,12 +106,14 @@ export function SmartBoard({
 
   const handleCanvasChange = useCallback(() => {
     hasStrokesRef.current = true;
+    setHasStrokes(true);
     setError(null);
   }, []);
 
   const handleClear = useCallback(async () => {
     await canvasRef.current?.clearCanvas();
     hasStrokesRef.current = false;
+    setHasStrokes(false);
     setRecognizedText(null);
     setError(null);
   }, []);
@@ -303,7 +309,7 @@ export function SmartBoard({
         <button
           type="button"
           onClick={handleSpeak}
-          disabled={isBusy}
+          disabled={isBusy || !hasStrokes}
           aria-label="Hablar — enviar escritura a ISA"
           className={cn(
             "human-press flex size-28 flex-col items-center justify-center gap-1 rounded-full text-xl font-extrabold text-white shadow-2xl transition-all disabled:opacity-60",

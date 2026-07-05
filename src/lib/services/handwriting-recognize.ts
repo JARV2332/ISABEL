@@ -73,20 +73,27 @@ function getVisionProviders(): VisionProvider[] {
   if (process.env.GROQ_API_KEY) {
     const key = process.env.GROQ_API_KEY;
     const base = process.env.GROQ_BASE_URL ?? "https://api.groq.com/openai/v1";
+    const groqVision =
+      process.env.GROQ_VISION_MODEL ??
+      "meta-llama/llama-4-scout-17b-16e-instruct";
+
     list.push({
-      name: "groq-90b",
+      name: "groq-scout",
       apiKey: key,
       baseUrl: base,
-      model: "llama-3.2-90b-vision-preview",
+      model: groqVision,
       priority: 3,
     });
-    list.push({
-      name: "groq-11b",
-      apiKey: key,
-      baseUrl: base,
-      model: process.env.GROQ_VISION_MODEL ?? "llama-3.2-11b-vision-preview",
-      priority: 4,
-    });
+
+    if (groqVision !== "meta-llama/llama-4-scout-17b-16e-instruct") {
+      list.push({
+        name: "groq-scout-default",
+        apiKey: key,
+        baseUrl: base,
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        priority: 4,
+      });
+    }
   }
 
   return list.sort((a, b) => a.priority - b.priority);
@@ -98,12 +105,29 @@ export function isHandwritingVisionConfigured(): boolean {
 
 function cleanVisionOutput(raw: string): string | null {
   let text = raw.trim();
+  text = text.replace(/<think[^>]*>[\s\S]*?<\/think>/gi, "");
+  text = text.replace(/<think>[\s\S]*?<\/redacted_thinking>/gi, "");
+  text = text.replace(/<think>[\s\S]*/gi, "");
   text = text.replace(/^["'`«»]+|["'`«»]+$/g, "");
   text = text.replace(/^(texto|respuesta|lectura|resultado):\s*/i, "");
-  text = text.replace(/\s+/g, " ");
+  text = text.replace(/\s+/g, " ").trim();
+
+  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  if (lines.length > 1) {
+    const candidate = lines.find(
+      (line) =>
+        line.length <= 80 &&
+        !/^(analyze|rule|image|the user|contex)/i.test(line) &&
+        !/[<>]/.test(line)
+    );
+    if (candidate) text = candidate;
+  }
 
   if (
     !text ||
+    text.length > 120 ||
+    /[<>]/.test(text) ||
+    /thinking|analyze the image|^\*\*/i.test(text) ||
     text.toUpperCase() === "VACIO" ||
     /^no\s+(hay|se|puedo|veo|encuentro)/i.test(text) ||
     /ilegible|sin\s+trazo/i.test(text)
@@ -136,14 +160,42 @@ export function mergeHandwritingWithContext(
   return `${prev} ${text}`.replace(/\s+/g, " ").trim();
 }
 
-function scoreReading(text: string): number {
-  if (!text) return 0;
-  const words = text.split(/\s+/);
-  let score = text.length;
-  if (words.length >= 2) score += 15;
-  if (/^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+$/.test(text)) score += 10;
-  if (text.length === 1) score -= 20;
-  return score;
+/** Prueba modelos de visión en orden hasta obtener una lectura válida. */
+export async function recognizeHandwriting(
+  imageBase64: string,
+  format: "jpeg" | "png" = "png",
+  context?: string
+): Promise<{ text: string | null; provider?: string }> {
+  const providers = getVisionProviders();
+  if (providers.length === 0) return { text: null };
+
+  for (const provider of providers) {
+    try {
+      const raw = await callVisionModel(provider, imageBase64, format, context);
+      if (!raw) continue;
+
+      const merged = mergeHandwritingWithContext(raw, context);
+      if (merged) {
+        return { text: merged, provider: provider.name };
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return { text: null };
+}
+
+function buildImageUrlPayload(
+  provider: VisionProvider,
+  imageBase64: string,
+  format: "jpeg" | "png"
+): { url: string; detail?: "high" } {
+  const url = `data:image/${format};base64,${imageBase64}`;
+  if (provider.baseUrl.includes("openai.com")) {
+    return { url, detail: "high" };
+  }
+  return { url };
 }
 
 async function callVisionModel(
@@ -168,10 +220,7 @@ async function callVisionModel(
             { type: "text", text: buildUserPrompt(context) },
             {
               type: "image_url",
-              image_url: {
-                url: `data:image/${format};base64,${imageBase64}`,
-                detail: "high",
-              },
+              image_url: buildImageUrlPayload(provider, imageBase64, format),
             },
           ],
         },
@@ -197,42 +246,4 @@ async function callVisionModel(
   if (!raw) return null;
 
   return cleanVisionOutput(raw);
-}
-
-/** Prueba varios modelos de visión y elige la mejor lectura. */
-export async function recognizeHandwriting(
-  imageBase64: string,
-  format: "jpeg" | "png" = "png",
-  context?: string
-): Promise<{ text: string | null; provider?: string }> {
-  const providers = getVisionProviders();
-  if (providers.length === 0) return { text: null };
-
-  let bestText: string | null = null;
-  let bestScore = 0;
-  let bestProvider: string | undefined;
-
-  for (const provider of providers) {
-    try {
-      const raw = await callVisionModel(provider, imageBase64, format, context);
-      if (!raw) continue;
-
-      const merged = mergeHandwritingWithContext(raw, context);
-      const score = scoreReading(merged);
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestText = merged;
-        bestProvider = provider.name;
-      }
-
-      if (score >= 30 && merged.split(/\s+/).length >= 2) {
-        return { text: merged, provider: provider.name };
-      }
-    } catch {
-      continue;
-    }
-  }
-
-  return { text: bestText, provider: bestProvider };
 }
