@@ -24,6 +24,20 @@ export const metadata: Metadata = {
   },
   description:
     "Estación inteligente de accesibilidad para EDUKIDS. Módulos de audición, habla, visual y movilidad.",
+  openGraph: {
+    title: "ISABEL — Estación de Accesibilidad EDUKIDS",
+    description:
+      "Estación inteligente de accesibilidad para EDUKIDS. Módulos de audición, habla, visual y movilidad.",
+    type: "website",
+    locale: "es_GT",
+    siteName: "ISABEL",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ISABEL — Estación de Accesibilidad EDUKIDS",
+    description:
+      "Estación inteligente de accesibilidad para EDUKIDS. Módulos de audición, habla, visual y movilidad.",
+  },
 };
 
 export default function RootLayout({
