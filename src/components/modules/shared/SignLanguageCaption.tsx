@@ -8,6 +8,7 @@ interface SignLanguageCaptionProps {
   signs: SignUnit[];
   currentIndex: number;
   isPlaying: boolean;
+  size?: "default" | "hero";
   className?: string;
 }
 
@@ -16,12 +17,16 @@ export function SignLanguageCaption({
   signs,
   currentIndex,
   isPlaying,
+  size = "default",
   className,
 }: SignLanguageCaptionProps) {
+  const isHero = size === "hero";
+
   return (
     <div
       className={cn(
-        "rounded-lg border-2 border-[var(--module-accent)] bg-[var(--module-bg)] p-4",
+        "rounded-lg border-2 border-[var(--module-accent)] bg-[var(--module-bg)]",
+        isHero ? "p-5" : "p-4",
         className
       )}
       aria-live="polite"
@@ -32,13 +37,18 @@ export function SignLanguageCaption({
         {isPlaying ? "🔊 Interpretando en señas…" : "Lo que se dijo"}
       </p>
 
-      <p className="mb-3 text-lg font-medium leading-relaxed text-[var(--module-fg)] sm:text-xl">
+      <p
+        className={cn(
+          "mb-3 font-medium leading-relaxed text-[var(--module-fg)]",
+          isHero ? "text-xl sm:text-2xl" : "text-lg sm:text-xl"
+        )}
+      >
         «{sourceText}»
       </p>
 
       {signs.length > 0 && (
         <div
-          className="flex flex-wrap gap-2"
+          className={cn("flex flex-wrap", isHero ? "gap-2.5" : "gap-2")}
           role="list"
           aria-label="Letras sincronizadas con la dactilología"
         >
@@ -51,7 +61,8 @@ export function SignLanguageCaption({
                 key={`${sign.gloss}-${index}`}
                 role="listitem"
                 className={cn(
-                  "rounded-md px-3 py-1.5 text-sm font-semibold transition-all motion-safe:duration-300",
+                  "rounded-md font-semibold transition-all motion-safe:duration-300",
+                  isHero ? "px-3.5 py-2 text-base" : "px-3 py-1.5 text-sm",
                   isActive &&
                     "scale-105 bg-[var(--module-accent)] text-[var(--module-accent-fg)] shadow-md ring-2 ring-[var(--module-accent)]",
                   isPast &&

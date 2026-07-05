@@ -5,6 +5,7 @@ import type { RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
+import { letterImageUrl } from "@/lib/services/fingerspelling";
 import { cn } from "@/lib/utils";
 
 interface SignCaptureCameraProps {
@@ -57,12 +58,11 @@ export function SignCaptureCamera({
           <span className="flex size-12 items-center justify-center rounded-2xl bg-accent/20 text-[var(--module-accent)]">
             <Hand className="size-6" aria-hidden="true" />
           </span>
-          Intérprete LSM en vivo
+          Señas a audio
         </h2>
         <p className="text-lg leading-relaxed text-[var(--module-muted-fg)]">
-          Mantén la mano a 40–60 cm de la cámara, dedos hacia arriba y bien
-          iluminados. Las puntas cian = dedos detectados. Espera ver la letra
-          con <strong>68%+</strong> antes de cambiar de pose.
+          Deletrea señas con la cámara. ISA convertirá tu mensaje en audio para
+          que otras personas puedan escucharlo.
         </p>
         <details className="rounded-[1.5rem] border-2 border-border/60 bg-muted/40 px-5 py-3 text-base">
           <summary className="cursor-pointer font-bold text-[var(--module-fg)]">
@@ -82,7 +82,8 @@ export function SignCaptureCamera({
         </details>
       </div>
 
-      <div className="relative overflow-hidden rounded-[2rem] border-2 border-[var(--module-border)] bg-black shadow-2xl">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start">
+        <div className="relative overflow-hidden rounded-[2rem] border-2 border-[var(--module-border)] bg-black shadow-2xl">
         <video
           ref={videoRef}
           muted
@@ -157,6 +158,39 @@ export function SignCaptureCamera({
             </p>
           </div>
         )}
+        </div>
+
+        <aside
+          className="flex min-h-[320px] flex-col items-center justify-center px-2 py-4 lg:min-h-[420px]"
+          aria-label="Referencia de la seña detectada"
+        >
+          <p className="mb-4 text-sm font-bold uppercase tracking-wider text-[var(--module-muted-fg)]">
+            Seña de referencia
+          </p>
+          {currentLetter ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={letterImageUrl(currentLetter)}
+                alt={`Referencia LSM de la letra ${currentLetter}`}
+                className="max-h-[min(42vh,400px)] w-full max-w-[300px] object-contain drop-shadow-[0_16px_32px_rgba(15,23,42,0.22)]"
+              />
+              <p className="mt-5 text-4xl font-black tracking-[0.3em] text-[var(--module-accent)]">
+                {currentLetter}
+              </p>
+              <p className="mt-3 text-sm font-medium text-[var(--module-muted-fg)]">
+                Confianza: {currentConfidence}%
+              </p>
+            </>
+          ) : (
+            <div className="flex min-h-[280px] flex-col items-center justify-center text-center">
+              <Hand className="mb-4 size-14 text-[var(--module-accent)]/40" aria-hidden="true" />
+              <p className="text-lg font-medium text-[var(--module-muted-fg)]">
+                Aquí verás la seña de referencia cuando detectemos una letra.
+              </p>
+            </div>
+          )}
+        </aside>
       </div>
 
       <div

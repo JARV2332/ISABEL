@@ -10,6 +10,7 @@ interface SignFingerspellingViewerProps {
   currentIndex: number;
   totalSigns: number;
   isPlaying: boolean;
+  size?: "default" | "hero";
   className?: string;
 }
 
@@ -18,17 +19,20 @@ export function SignFingerspellingViewer({
   currentIndex,
   totalSigns,
   isPlaying,
+  size = "default",
   className,
 }: SignFingerspellingViewerProps) {
   if (!currentSign?.imageUrl) return null;
 
+  const isHero = size === "hero";
   const progress =
     totalSigns > 0 ? Math.round(((currentIndex + 1) / totalSigns) * 100) : 0;
 
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border-2 border-[var(--module-border)] bg-[#0b1f3a]",
+        "relative overflow-hidden",
+        isHero ? "rounded-[1.5rem]" : "rounded-xl",
         className
       )}
       role="img"
@@ -38,34 +42,69 @@ export function SignFingerspellingViewer({
           : `Letra ${currentSign.label}`
       }
     >
-      <div className="flex min-h-[280px] flex-col items-center justify-center bg-white p-4 sm:min-h-[360px]">
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={currentSign.imageUrl}
-            src={currentSign.imageUrl}
-            alt={`Seña manual de la letra ${currentSign.label}`}
-            width={200}
-            height={240}
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: isPlaying ? 1.03 : 1 }}
-            exit={{ opacity: 0, scale: 0.92 }}
-            transition={{ duration: 0.25 }}
-            className="h-auto w-auto max-h-[280px] max-w-[200px] object-contain"
-          />
-        </AnimatePresence>
-
-        <p
-          className="mt-4 text-3xl font-bold tracking-widest text-[var(--module-accent)]"
-          aria-hidden="true"
+      <div
+        className={cn(
+          "relative flex flex-col items-center justify-center",
+          isHero
+            ? "min-h-[min(68vh,580px)] px-4 py-8 sm:px-8 sm:py-10"
+            : "min-h-[280px] p-4 sm:min-h-[360px]"
+        )}
+      >
+        <div
+          className={cn(
+            "relative flex w-full flex-1 flex-col items-center justify-center",
+            isHero && "gap-5"
+          )}
         >
-          {currentSign.label}
-        </p>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSign.imageUrl}
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: isPlaying ? 1.02 : 1 }}
+              exit={{ opacity: 0, scale: 0.94 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              className="flex w-full items-center justify-center"
+            >
+              <motion.img
+                src={currentSign.imageUrl}
+                alt={`Seña manual de la letra ${currentSign.label}`}
+                width={isHero ? 480 : 200}
+                height={isHero ? 560 : 240}
+                animate={isPlaying ? { y: [0, -6, 0] } : { y: 0 }}
+                transition={
+                  isPlaying
+                    ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
+                    : { duration: 0.2 }
+                }
+                className={cn(
+                  "h-auto w-auto object-contain",
+                  isHero
+                    ? "max-h-[min(62vh,540px)] max-w-[min(92vw,520px)] drop-shadow-[0_20px_40px_rgba(15,23,42,0.25)]"
+                    : "max-h-[280px] max-w-[220px] drop-shadow-lg"
+                )}
+              />
+            </motion.div>
+          </AnimatePresence>
+
+          <p
+            className={cn(
+              "font-black tracking-[0.35em] text-[var(--module-accent)]",
+              isHero ? "text-5xl sm:text-6xl" : "mt-2 text-3xl"
+            )}
+            aria-hidden="true"
+          >
+            {currentSign.label}
+          </p>
+        </div>
       </div>
 
       {totalSigns > 1 && (
-        <div className="border-t border-[var(--module-border)] bg-[var(--module-muted)] px-4 py-2">
+        <div className={cn(isHero ? "px-2 pb-2 sm:px-4" : "px-2 pb-2")}>
           <div
-            className="mb-1 flex justify-between text-xs text-[var(--module-muted-fg)]"
+            className={cn(
+              "mb-2 flex justify-between font-semibold text-[var(--module-muted-fg)]",
+              isHero ? "text-sm" : "text-xs"
+            )}
             aria-hidden="true"
           >
             <span>
@@ -74,7 +113,10 @@ export function SignFingerspellingViewer({
             <span>{progress}%</span>
           </div>
           <div
-            className="h-1.5 overflow-hidden rounded-full bg-[var(--module-border)]"
+            className={cn(
+              "overflow-hidden rounded-full bg-[var(--module-border)]",
+              isHero ? "h-2.5" : "h-1.5"
+            )}
             role="progressbar"
             aria-valuenow={currentIndex + 1}
             aria-valuemin={1}

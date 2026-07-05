@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "signs:split-alphabet": "node scripts/split-lsm-alphabet.mjs"
+    "signs:split-alphabet": "node scripts/split-lsm-alphabet.mjs",
+    "signs:strip-bg": "node scripts/strip-checkerboard.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

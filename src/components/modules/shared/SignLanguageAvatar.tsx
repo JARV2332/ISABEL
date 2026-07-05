@@ -20,12 +20,14 @@ interface SignLanguageAvatarProps {
   sequence: SignLanguageSequence | null;
   className?: string;
   avatarName?: string;
+  displaySize?: "default" | "hero";
 }
 
 export function SignLanguageAvatar({
   sequence,
   className,
   avatarName = "ISA",
+  displaySize = "default",
 }: SignLanguageAvatarProps) {
   const [show3dAvatar, setShow3dAvatar] = useState(false);
   const performs = usePerformsAvatar();
@@ -85,23 +87,34 @@ export function SignLanguageAvatar({
       ? `Letra ${currentIndex + 1} de ${totalSigns}: ${currentSign?.label ?? ""}`
       : "Reproduciendo video de lenguaje de señas";
 
+  const isHero = displaySize === "hero";
+
   return (
     <section
       aria-labelledby="sign-avatar-heading"
       className={cn(
-        "rounded-xl border-2 border-[var(--module-accent)] bg-[var(--module-muted)] p-4 sm:p-6",
+        "border-2 border-[var(--module-accent)] bg-[var(--module-muted)]",
+        isHero ? "rounded-[2rem] p-5 sm:p-8" : "rounded-xl p-4 sm:p-6",
         className
       )}
     >
       <h2
         id="sign-avatar-heading"
-        className="mb-2 flex items-center gap-2 text-lg font-semibold text-[var(--module-fg)]"
+        className={cn(
+          "mb-2 flex items-center gap-2 font-semibold text-[var(--module-fg)]",
+          isHero ? "text-2xl" : "text-lg"
+        )}
       >
         <Hand className="size-5" aria-hidden="true" />
         LSM — {avatarName}
       </h2>
 
-      <p className="mb-4 text-sm text-[var(--module-muted-fg)]">
+      <p
+        className={cn(
+          "mb-4 text-[var(--module-muted-fg)]",
+          isHero ? "text-base leading-relaxed sm:text-lg" : "text-sm"
+        )}
+      >
         La frase se deletrea letra por letra con el abecedario manual (dactilología
         LSM) para que personas con discapacidad auditiva puedan leer las señas.
       </p>
@@ -126,6 +139,7 @@ export function SignLanguageAvatar({
             signs={displaySequence.signs}
             currentIndex={currentIndex}
             isPlaying={isPlaying}
+            size={displaySize}
             className="mb-4"
           />
 
@@ -134,6 +148,7 @@ export function SignLanguageAvatar({
             currentIndex={currentIndex}
             totalSigns={totalSigns}
             isPlaying={isPlaying}
+            size={displaySize}
             className="mb-4"
           />
 
