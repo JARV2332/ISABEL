@@ -2,14 +2,13 @@
 /** Removes Cursor co-author trailers from a commit message file or stdin. */
 const fs = require("fs");
 
+const CURSOR_LINE =
+  /co-?authored-?by:.*cursor|cursoragent@cursor\.com|made-?with:.*cursor|cursor ai/i;
+
 function clean(text) {
   return text
     .split(/\r?\n/)
-    .filter(
-      (line) =>
-        !line.includes("cursoragent@cursor.com") &&
-        !line.startsWith("Made-with: Cursor")
-    )
+    .filter((line) => !CURSOR_LINE.test(line))
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
     .trimEnd();
