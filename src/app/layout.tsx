@@ -24,10 +24,6 @@ export const metadata: Metadata = {
   },
   description:
     "Estación inteligente de accesibilidad para EDUKIDS. Módulos de audición, habla, visual y movilidad.",
-  icons: {
-    icon: [{ url: "/logo.png", type: "image/png" }],
-    apple: [{ url: "/logo.png", type: "image/png" }],
-  },
 };
 
 export default function RootLayout({
