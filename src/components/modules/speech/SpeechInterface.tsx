@@ -1,137 +1,154 @@
 "use client";
 
-import { Mic, MicOff, RotateCcw, MessageSquare } from "lucide-react";
-import { useState } from "react";
+import { Mic, MicOff, Pencil, RotateCcw } from "lucide-react";
+import { useCallback, useState } from "react";
 
 import { ModuleShell } from "@/components/modules/ModuleShell";
+import { SmartBoard } from "@/components/modules/speech/SmartBoard";
 import { Button } from "@/components/ui/button";
+import { Panel } from "@/components/ui/panel";
+import { TabGroup } from "@/components/ui/tab-group";
 import { useSpeechLogic } from "@/lib/hooks/useSpeechLogic";
 import { speechModule } from "@/lib/module-registry";
 import type { ModuleViewProps } from "@/types/module";
 
-export function SpeechInterface({ module = speechModule }: ModuleViewProps) {
-  const {
-    status,
-    transcript,
-    output,
-    isaResponse,
-    error,
-    isListening,
-    startListening,
-    stopListening,
-    submitText,
-    clearSession,
-  } = useSpeechLogic();
+type InputMode = "microphone" | "board";
 
-  const [textInput, setTextInput] = useState("");
+const INPUT_TABS = [
+  { id: "board" as const, label: "Pizarra", icon: Pencil },
+  { id: "microphone" as const, label: "Micrófono", icon: Mic },
+];
+
+export function SpeechInterface({ module = speechModule }: ModuleViewProps) {
+  const [inputMode, setInputMode] = useState<InputMode>("board");
+
+  const speech = useSpeechLogic();
+
+  const handleBoardText = useCallback(
+    async (text: string) => {
+      await speech.submitText(text);
+    },
+    [speech]
+  );
+
+  const clearAll = useCallback(() => {
+    speech.clearSession();
+  }, [speech]);
 
   return (
     <ModuleShell
       module={module}
-      status={status}
-      isaResponse={isaResponse}
-      error={error}
+      status={speech.status}
+      isaResponse={speech.isaResponse}
+      error={speech.error}
       actions={
-        <>
-          <Button
-            type="button"
-            onClick={isListening ? stopListening : startListening}
-            aria-pressed={isListening}
-            aria-label={
-              isListening ? "Detener grabación de voz" : "Grabar con micrófono"
-            }
-            className="min-h-11 bg-[var(--module-accent)] text-[var(--module-accent-fg)] hover:bg-[var(--module-accent)]/90"
-          >
-            {isListening ? (
-              <>
-                <MicOff aria-hidden="true" />
-                Detener
-              </>
-            ) : (
-              <>
-                <Mic aria-hidden="true" />
-                Grabar voz
-              </>
-            )}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={clearSession}
-            aria-label="Limpiar sesión de habla"
-            className="min-h-11 border-[var(--module-border)] text-[var(--module-fg)]"
-          >
-            <RotateCcw aria-hidden="true" />
-            Limpiar
-          </Button>
-        </>
+        inputMode === "microphone" ? (
+          <>
+            <Button
+              type="button"
+              variant="accent"
+              size="lg"
+              className="flex-1 sm:flex-none"
+              onClick={
+                speech.isListening
+                  ? speech.stopListening
+                  : speech.startListening
+              }
+              aria-pressed={speech.isListening}
+              aria-label={
+                speech.isListening
+                  ? "Detener grabación de voz"
+                  : "Grabar con micrófono"
+              }
+            >
+              {speech.isListening ? (
+                <>
+                  <MicOff aria-hidden="true" />
+                  Detener
+                </>
+              ) : (
+                <>
+                  <Mic aria-hidden="true" />
+                  Grabar voz
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 sm:flex-none"
+              onClick={clearAll}
+              aria-label="Limpiar sesión"
+            >
+              <RotateCcw aria-hidden="true" />
+              Limpiar
+            </Button>
+          </>
+        ) : null
       }
     >
-      <div className="space-y-6">
-        <section aria-labelledby="speech-input-heading">
-          <h2
-            id="speech-input-heading"
-            className="mb-3 flex items-center gap-2 text-lg font-semibold text-[var(--module-fg)]"
-          >
-            <Mic className="size-5" aria-hidden="true" />
-            Entrada: Micrófono
-          </h2>
-          <p className="mb-3 text-sm text-[var(--module-muted-fg)]">
-            Habla o escribe tu mensaje. ISA lo procesará y lo convertirá en
-            texto/voz clara.
-          </p>
+      <TabGroup
+        options={INPUT_TABS}
+        value={inputMode}
+        onChange={setInputMode}
+        ariaLabel="Modo de entrada en Habla"
+        className="mb-8"
+      />
 
-          {transcript && (
-            <blockquote className="mb-4 rounded-lg border-2 border-[var(--module-border)] bg-[var(--module-muted)] p-4 text-base text-[var(--module-fg)]">
-              <span className="sr-only">Transcripción: </span>
-              {transcript}
-            </blockquote>
-          )}
-
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void submitText(textInput);
-            }}
-            className="flex flex-col gap-3 sm:flex-row"
-          >
-            <label htmlFor="speech-text-input" className="sr-only">
-              Escribir mensaje alternativo
-            </label>
-            <input
-              id="speech-text-input"
-              type="text"
-              value={textInput}
-              onChange={(event) => setTextInput(event.target.value)}
-              placeholder="O escribe tu mensaje aquí…"
-              className="min-h-11 flex-1 rounded-lg border-2 border-[var(--module-border)] bg-[var(--module-bg)] px-4 text-[var(--module-fg)] placeholder:text-[var(--module-muted-fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--module-accent)]"
-            />
-            <Button
-              type="submit"
-              variant="secondary"
-              aria-label="Enviar texto escrito"
-              className="min-h-11 bg-[var(--module-muted)] text-[var(--module-fg)]"
-            >
-              <MessageSquare aria-hidden="true" />
-              Enviar texto
-            </Button>
-          </form>
-        </section>
-
-        {output && (
-          <section aria-labelledby="speech-output-heading">
+      {inputMode === "board" ? (
+        <div id="panel-board" role="tabpanel" aria-labelledby="tab-board">
+          <SmartBoard
+            onTextRecognized={handleBoardText}
+            isaOutput={speech.output || null}
+            isProcessingIsa={speech.status === "processing"}
+          />
+        </div>
+      ) : (
+        <div
+          id="panel-microphone"
+          role="tabpanel"
+          aria-labelledby="tab-microphone"
+          className="space-y-6"
+        >
+          <section aria-labelledby="speech-mic-heading">
             <h2
-              id="speech-output-heading"
-              className="mb-3 text-lg font-semibold text-[var(--module-fg)]"
+              id="speech-mic-heading"
+              className="mb-4 text-2xl font-extrabold text-[var(--module-fg)]"
             >
-              Respuesta de ISA (Voz/Texto)
+              Entrada por micrófono
             </h2>
-            <output className="block rounded-lg border-2 border-[var(--module-accent)] bg-[var(--module-bg)] p-4 text-lg font-medium text-[var(--module-fg)]">
-              {output}
-            </output>
+            <p className="mb-5 text-lg text-[var(--module-muted-fg)]">
+              Habla y ISA convertirá tu mensaje en respuesta clara con voz
+              ElevenLabs.
+            </p>
+            <Panel variant="inset" className="min-h-[6rem]">
+              <p className="text-xl text-[var(--module-fg)]">
+                {speech.transcript || (
+                  <span className="text-[var(--module-muted-fg)]">
+                    {speech.isListening
+                      ? "Escuchando…"
+                      : "Toca «Grabar voz» para comenzar."}
+                  </span>
+                )}
+              </p>
+            </Panel>
           </section>
-        )}
-      </div>
+
+          {speech.output && (
+            <section aria-labelledby="speech-mic-output">
+              <h2
+                id="speech-mic-output"
+                className="mb-4 text-2xl font-extrabold text-[var(--module-fg)]"
+              >
+                Respuesta de ISA
+              </h2>
+              <Panel variant="accent" as="output">
+                <p className="text-xl font-semibold">{speech.output}</p>
+              </Panel>
+            </section>
+          )}
+        </div>
+      )}
     </ModuleShell>
   );
 }

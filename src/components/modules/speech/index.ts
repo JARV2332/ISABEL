@@ -17,3 +17,4 @@ export const speechModule: ModuleInterface = {
 };
 
 export { SpeechInterface } from "./SpeechInterface";
+export { SmartBoard } from "./SmartBoard";

@@ -257,3 +257,9 @@
   clip: auto;
   white-space: normal;
 }
+
+/* Pizarra inteligente — trazo suave */
+.smart-board-canvas svg path {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
