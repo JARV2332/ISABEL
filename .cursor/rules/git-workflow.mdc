@@ -22,11 +22,34 @@ Tras completar una tarea con cambios en el código, **sin esperar a que el usuar
 3. Commit con mensaje conciso en estilo del repo (`feat:`, `fix:`, `docs:`, etc.)
 4. `git push origin main`
 
+## Identidad git (solo JARV2332)
+
+Todos los commits deben quedar **únicamente** a nombre del usuario:
+
+- **Nombre:** `JARV2332`
+- **Email:** `32459840+JARV2332@users.noreply.github.com`
+
+Usar siempre:
+
+```powershell
+git -c user.name="JARV2332" -c user.email="32459840+JARV2332@users.noreply.github.com" commit -m @"..."@
+```
+
 ## Mensajes de commit
 
 - 1–2 oraciones, enfoque en el **por qué**
 - Seguir el estilo de commits recientes del repositorio
 - En PowerShell usar here-string: `git commit -m @"..."@`
+- **Nunca** incluir `Co-authored-by`, `Made-with: Cursor` ni `--trailer`
+- Si Cursor inyecta co-autor, ejecutar `git commit --amend` y volver a pushear (o usar el hook en `.githooks/`)
+
+## Hook anti co-autor
+
+El repo incluye `.githooks/prepare-commit-msg`. Activar una vez por clon:
+
+```powershell
+git config core.hooksPath .githooks
+```
 
 ## Excepciones
 
