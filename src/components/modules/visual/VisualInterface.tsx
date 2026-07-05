@@ -94,8 +94,9 @@ export function VisualInterface({ module = visualModule }: ModuleViewProps) {
             Lectura accesible
           </h2>
           <p className="mb-5 text-lg leading-relaxed text-[var(--module-muted-fg)]">
-            Escribe o pega texto, o sube un PDF. ISA lo procesará y lo leerá en
-            voz alta con ElevenLabs.
+            Escribe, pega texto o sube un PDF. ISA lo leerá{" "}
+            <span className="font-bold text-[var(--module-fg)]">completo</span> en
+            voz alta con ElevenLabs, sin resumir.
           </p>
 
           <TabGroup
@@ -202,19 +203,24 @@ export function VisualInterface({ module = visualModule }: ModuleViewProps) {
               id="visual-output-heading"
               className="mb-4 text-2xl font-extrabold text-[var(--module-fg)]"
             >
-              Respuesta de ISA (Voz)
+              Contenido leído
             </h2>
             <Panel variant="accent" as="output">
-              <p className="text-xl font-semibold leading-relaxed">
-                {visual.output}
+              <p className="max-h-64 overflow-y-auto text-xl font-semibold leading-relaxed whitespace-pre-wrap">
+                {visual.output.length > 2000
+                  ? `${visual.output.slice(0, 2000)}…`
+                  : visual.output}
               </p>
             </Panel>
-            {visual.isSpeaking && (
+            {(visual.isSpeaking || visual.isLoadingTts || visual.readProgress) && (
               <p
                 role="status"
                 className="mt-3 text-lg font-medium text-[var(--module-accent)]"
               >
-                Leyendo en voz alta…
+                {visual.readProgress ??
+                  (visual.isLoadingTts
+                    ? "Generando voz…"
+                    : "Leyendo en voz alta…")}
               </p>
             )}
           </section>

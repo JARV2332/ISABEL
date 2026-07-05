@@ -6,12 +6,14 @@ import { useToast } from "@/components/ui/toast";
 import { useIsaAudio } from "@/lib/hooks/useIsaAudio";
 import { useModuleN8n } from "@/lib/hooks/useModuleN8n";
 import { extractTextFromPdf } from "@/lib/services/pdf-extract";
+import { splitTextForTts } from "@/lib/services/read-aloud";
 import type { ModuleStatus } from "@/types/module";
 
 export function useVisualLogic() {
   const { toast } = useToast();
   const { submit } = useModuleN8n("visual");
-  const { speak, isSpeaking, stop: stopSpeaking } = useIsaAudio();
+  const { requestTts, isSpeaking, isLoadingTts, stop: stopSpeaking } =
+    useIsaAudio();
 
   const [status, setStatus] = useState<ModuleStatus>("idle");
   const [input, setInput] = useState("");
@@ -20,10 +22,35 @@ export function useVisualLogic() {
   const [error, setError] = useState<string | null>(null);
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
   const [isExtractingPdf, setIsExtractingPdf] = useState(false);
+  const [readProgress, setReadProgress] = useState<string | null>(null);
 
+  const logActivity = useCallback(
+    (text: string, event: string) => {
+      void submit({
+        event,
+        data: { input: text, transcript: text },
+      }).catch(() => {});
+
+      void fetch("/api/interactions/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleId: "visual",
+          eventType: event,
+          inputText: text.slice(0, 500),
+          outputText: text.slice(0, 500),
+          metadata: { length: text.length, verbatim: true },
+        }),
+      }).catch(() => {});
+    },
+    [submit]
+  );
+
+  /** Lee el texto tal cual, sin resumir con IA. */
   const processText = useCallback(
-    async (text: string) => {
-      if (!text.trim()) {
+    async (text: string, options?: { fromPdf?: boolean }) => {
+      const trimmed = text.trim();
+      if (!trimmed) {
         toast({
           title: "Texto requerido",
           description: "Escribe o pega el contenido que deseas escuchar.",
@@ -34,29 +61,44 @@ export function useVisualLogic() {
 
       setStatus("processing");
       setError(null);
+      setReadProgress(null);
 
       try {
-        const response = await submit({
-          event: "visual.describe",
-          data: { input: text },
-        });
-
-        const result = response.output ?? text;
-        setOutput(result);
-        setIsaResponse(`ISA respondió: ${result}`);
+        const chunks = splitTextForTts(trimmed);
+        setOutput(trimmed);
+        setIsaResponse(
+          options?.fromPdf
+            ? `Leyendo PDF completo (${trimmed.length.toLocaleString("es-GT")} caracteres).`
+            : `Leyendo texto completo (${trimmed.length.toLocaleString("es-GT")} caracteres).`
+        );
         setStatus("active");
-        void speak(result, { useElevenLabs: response.elevenLabsAvailable !== false });
+
+        for (let i = 0; i < chunks.length; i++) {
+          setReadProgress(
+            chunks.length > 1
+              ? `Parte ${i + 1} de ${chunks.length}…`
+              : null
+          );
+          await requestTts(chunks[i]);
+        }
+
+        setReadProgress(null);
+        logActivity(
+          trimmed,
+          options?.fromPdf ? "visual.pdf-read" : "visual.read-aloud"
+        );
 
         toast({
-          title: "Contenido listo",
-          description: "ISA está leyendo el texto en voz alta.",
+          title: options?.fromPdf ? "PDF leído" : "Texto leído",
+          description: "ISA leyó el contenido completo en voz alta.",
           variant: "success",
         });
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Error al procesar el texto";
+          err instanceof Error ? err.message : "Error al leer en voz alta";
         setError(message);
         setStatus("error");
+        setReadProgress(null);
         toast({
           title: "Error en Visual",
           description: message,
@@ -64,7 +106,7 @@ export function useVisualLogic() {
         });
       }
     },
-    [speak, submit, toast]
+    [logActivity, requestTts, toast]
   );
 
   const processPdfFile = useCallback(
@@ -76,7 +118,7 @@ export function useVisualLogic() {
       try {
         const text = await extractTextFromPdf(file);
         setInput(text);
-        await processText(text);
+        await processText(text, { fromPdf: true });
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "No se pudo leer el PDF";
@@ -103,6 +145,7 @@ export function useVisualLogic() {
     setError(null);
     setPdfFileName(null);
     setIsExtractingPdf(false);
+    setReadProgress(null);
     setStatus("idle");
   }, [stopSpeaking]);
 
@@ -114,9 +157,11 @@ export function useVisualLogic() {
     isaResponse,
     error,
     isSpeaking,
+    isLoadingTts,
     pdfFileName,
     isExtractingPdf,
-    isProcessing: status === "processing" || isExtractingPdf,
+    readProgress,
+    isProcessing: status === "processing" || isExtractingPdf || isLoadingTts,
     processText,
     processPdfFile,
     stopSpeaking,
