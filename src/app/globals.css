@@ -258,8 +258,23 @@
   white-space: normal;
 }
 
-/* Pizarra inteligente — trazo suave */
-.smart-board-canvas svg path {
+/* Pizarra de escritura — área dibujable a ancho completo */
+.handwriting-board-canvas .react-sketch-canvas,
+.handwriting-board-canvas .react-sketch-canvas > div {
+  display: block;
+  width: 100% !important;
+  max-width: 100%;
+  touch-action: none;
+}
+
+.handwriting-board-canvas .react-sketch-canvas svg {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+}
+
+.handwriting-board-canvas svg path {
   stroke-linecap: round;
   stroke-linejoin: round;
 }

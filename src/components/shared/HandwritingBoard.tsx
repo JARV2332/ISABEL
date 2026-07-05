@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 const STROKE_COLOR = "#000000";
 const STROKE_WIDTH = 10;
 const CANVAS_COLOR = "#FFFFFF";
+const CANVAS_MIN_HEIGHT = 320;
+const CANVAS_MIN_HEIGHT_SM = 384;
 
 export interface HandwritingBoardProps {
   moduleId?: ModuleId;
@@ -40,7 +42,14 @@ export function HandwritingBoard({
 }: HandwritingBoardProps) {
   const theme = getModuleTheme(moduleId);
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const hasStrokesRef = useRef(false);
+
+  const [canvasSize, setCanvasSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const [canvasMountKey, setCanvasMountKey] = useState(0);
 
   const { recognize, isRecognizing, error, clearError, setError } =
     useHandwritingRecognize(context);
@@ -94,6 +103,62 @@ export function HandwritingBoard({
   }, [clearError]);
 
   useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+
+    let rafId = 0;
+
+    const measure = () => {
+      const rect = node.getBoundingClientRect();
+      const width = Math.round(rect.width);
+      const height =
+        Math.round(rect.height) ||
+        (window.matchMedia("(min-width: 640px)").matches
+          ? CANVAS_MIN_HEIGHT_SM
+          : CANVAS_MIN_HEIGHT);
+
+      if (width <= 0 || height <= 0) return;
+
+      setCanvasSize((prev) => {
+        if (
+          prev &&
+          Math.abs(prev.width - width) <= 1 &&
+          Math.abs(prev.height - height) <= 1
+        ) {
+          return prev;
+        }
+
+        if (prev && Math.abs(prev.width - width) > 8) {
+          setCanvasMountKey((key) => key + 1);
+          hasStrokesRef.current = false;
+          setHasStrokes(false);
+          setDraft("");
+          setShowReview(false);
+        }
+
+        return { width, height };
+      });
+    };
+
+    const scheduleMeasure = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        requestAnimationFrame(measure);
+      });
+    };
+
+    scheduleMeasure();
+
+    const observer = new ResizeObserver(scheduleMeasure);
+    observer.observe(node);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
     return () => {
       void canvasRef.current?.clearCanvas();
     };
@@ -120,36 +185,52 @@ export function HandwritingBoard({
       )}
 
       <div
+        ref={containerRef}
         className={cn(
-          "relative overflow-hidden rounded-[2rem] border-2 bg-white shadow-inner",
+          "handwriting-board-canvas relative overflow-hidden rounded-[2rem] border-2 bg-white shadow-inner",
+          "h-[20rem] w-full sm:h-[24rem]",
           disabled && "pointer-events-none opacity-60"
         )}
         style={{ borderColor: `${theme.accentLight}88` }}
       >
-        <ReactSketchCanvas
-          ref={canvasRef}
-          onChange={() => {
-            hasStrokesRef.current = true;
-            setHasStrokes(true);
-            clearError();
-          }}
-          strokeWidth={STROKE_WIDTH}
-          strokeColor={STROKE_COLOR}
-          canvasColor={CANVAS_COLOR}
-          exportWithBackgroundImage
-          style={{
-            borderRadius: "2rem",
-            width: "100%",
-            minHeight: "320px",
-            background: "#FFFFFF",
-          }}
-          svgStyle={{
-            borderRadius: "2rem",
-            touchAction: "none",
-          }}
-          className="min-h-[20rem] w-full sm:min-h-[24rem]"
-          aria-label="Área de escritura a mano"
-        />
+        {canvasSize && canvasSize.width > 0 ? (
+          <ReactSketchCanvas
+            key={canvasMountKey}
+            ref={canvasRef}
+            onChange={() => {
+              hasStrokesRef.current = true;
+              setHasStrokes(true);
+              clearError();
+            }}
+            strokeWidth={STROKE_WIDTH}
+            strokeColor={STROKE_COLOR}
+            canvasColor={CANVAS_COLOR}
+            exportWithBackgroundImage
+            width={`${canvasSize.width}px`}
+            height={`${canvasSize.height}px`}
+            style={{
+              borderRadius: "2rem",
+              width: `${canvasSize.width}px`,
+              height: `${canvasSize.height}px`,
+              background: "#FFFFFF",
+              border: "none",
+            }}
+            svgStyle={{
+              borderRadius: "2rem",
+              touchAction: "none",
+              display: "block",
+            }}
+            className="block"
+            aria-label="Área de escritura a mano"
+          />
+        ) : (
+          <div
+            className="flex h-full w-full items-center justify-center text-sm font-medium text-muted-foreground"
+            aria-hidden="true"
+          >
+            Preparando pizarra…
+          </div>
+        )}
 
         {isRecognizing && (
           <div
