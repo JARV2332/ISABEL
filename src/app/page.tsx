@@ -4,8 +4,6 @@ import { Ear, Mic, Eye, Accessibility } from "lucide-react";
 
 import { enabledModules } from "@/components/modules";
 import { IotPanel } from "@/components/dashboard/IotPanel";
-import { IntegrationsStatusPanel } from "@/components/dashboard/IntegrationsStatusPanel";
-import { RecentInteractionsPanel } from "@/components/dashboard/RecentInteractionsPanel";
 import { getModuleTheme } from "@/lib/module-themes";
 
 const iconMap = {
@@ -94,12 +92,7 @@ export default function HomePage() {
         </ul>
       </section>
 
-      <IntegrationsStatusPanel />
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <IotPanel />
-        <RecentInteractionsPanel />
-      </div>
+      <IotPanel />
     </div>
   );
 }
