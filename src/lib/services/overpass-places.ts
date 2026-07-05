@@ -11,6 +11,23 @@ const OVERPASS_ENDPOINTS = [
   "https://overpass.kumi.systems/api/interpreter",
 ];
 
+const USER_AGENT = "ISABEL-Accessibility/1.0 (mobility-places; contact: github.com/JARV2332/ISABEL)";
+
+const AMENITY_LABELS: Record<string, string> = {
+  hospital: "Hospital",
+  clinic: "Clínica",
+  pharmacy: "Farmacia",
+  doctors: "Consultorio médico",
+  restaurant: "Restaurante",
+  fast_food: "Comida rápida",
+  cafe: "Cafetería",
+  bank: "Banco",
+  atm: "Cajero",
+  toilets: "Baño público",
+  parking: "Parqueo",
+  marketplace: "Mercado",
+};
+
 const AMENITY_REGEX =
   "hospital|clinic|restaurant|fast_food|cafe|bank|atm|toilets|parking|marketplace|pharmacy";
 
@@ -62,12 +79,13 @@ function elementToPlace(
 
   const distanceMeters = haversineMeters(userLat, userLng, lat, lon);
 
+  const amenity = tags.amenity ?? tags.shop;
   const name =
     tags.name ??
     tags["name:es"] ??
     tags.brand ??
     tags.operator ??
-    null;
+    (amenity ? AMENITY_LABELS[amenity] ?? amenity.replace(/_/g, " ") : null);
 
   if (!name) return null;
 
@@ -167,6 +185,7 @@ async function queryOverpass(query: string): Promise<OverpassElement[]> {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
+          "User-Agent": USER_AGENT,
         },
         body: `data=${encodeURIComponent(query)}`,
         cache: "no-store",

@@ -6,6 +6,7 @@ import {
   SEARCH_RADIUS_METERS,
 } from "@/lib/geo/places-utils";
 import { fetchOsmNearby } from "@/lib/services/overpass-places";
+import { fetchPhotonNearby } from "@/lib/services/photon-places";
 import {
   createSupabaseClient,
   isSupabaseConfigured,
@@ -172,12 +173,13 @@ export async function findNearbyAccessiblePlaces(options: {
     : [];
 
   if (includeOsm) {
-    try {
-      const osm = await fetchOsmNearby(latitude, longitude, category, radiusMeters);
-      combined.push(...osm);
-    } catch {
-      /* OSM opcional */
-    }
+    const [photon, osm] = await Promise.allSettled([
+      fetchPhotonNearby(latitude, longitude, category, radiusMeters),
+      fetchOsmNearby(latitude, longitude, category, radiusMeters),
+    ]);
+
+    if (photon.status === "fulfilled") combined.push(...photon.value);
+    if (osm.status === "fulfilled") combined.push(...osm.value);
   }
 
   combined = dedupePlaces(combined)
