@@ -331,3 +331,103 @@ html.immersive-reader main h2,
 html.immersive-reader main h3 {
   cursor: pointer;
 }
+
+/* ——— Módulo Habla: tipografía accesible y lectura fácil ——— */
+.speech-module {
+  --speech-fg: #0f172a;
+  --speech-muted: #475569;
+  --speech-card-bg: #fdf2f8;
+  --speech-card-border: #f9a8d4;
+  --speech-bg: #fffdf7;
+  font-family: var(--font-hyperlegible), var(--font-lexend), Arial, Verdana,
+    Tahoma, "Trebuchet MS", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.speech-module .speech-body,
+.speech-module .speech-label,
+.speech-module .speech-input,
+.speech-module .speech-phrase-btn,
+.speech-module .speech-secondary-btn {
+  line-height: 1.5;
+  text-align: left;
+}
+
+.speech-module .speech-intro,
+.speech-module .speech-body {
+  font-size: 1.125rem;
+}
+
+.speech-module .speech-heading {
+  font-size: 1.375rem;
+  line-height: 1.4;
+}
+
+.speech-module .speech-phrase-btn {
+  font-size: 1.125rem;
+  min-height: 3.5rem;
+}
+
+.speech-module .speech-input {
+  font-size: 1.125rem;
+  min-height: 8rem;
+}
+
+.speech-module .speech-primary-btn {
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.speech-module .speech-conversation-text {
+  font-size: 1.5rem;
+  line-height: 1.5;
+}
+
+.speech-module.speech-easy-read {
+  --speech-bg: #fffdf7;
+  --speech-card-bg: #fdf7f2;
+}
+
+.speech-module.speech-easy-read article {
+  background: var(--speech-bg) !important;
+  box-shadow: 0 8px 24px -8px rgb(15 23 42 / 0.08) !important;
+}
+
+.speech-module.speech-easy-read .speech-intro,
+.speech-module.speech-easy-read .speech-body {
+  font-size: 1.25rem;
+  line-height: 1.65;
+}
+
+.speech-module.speech-easy-read .speech-heading {
+  font-size: 1.625rem;
+}
+
+.speech-module.speech-easy-read .speech-phrase-btn {
+  font-size: 1.25rem;
+  min-height: 4rem;
+  padding-top: 1.125rem;
+  padding-bottom: 1.125rem;
+}
+
+.speech-module.speech-easy-read .speech-input {
+  font-size: 1.25rem;
+  line-height: 1.65;
+  min-height: 10rem;
+}
+
+.speech-module.speech-easy-read .speech-primary-btn {
+  font-size: 1.375rem;
+  min-height: 4rem;
+}
+
+.speech-module.speech-easy-read .speech-conversation-text {
+  font-size: 1.75rem;
+  line-height: 1.65;
+}
+
+.speech-module.speech-easy-read .human-surface,
+.speech-module.speech-easy-read [class*="shadow-2xl"],
+.speech-module.speech-easy-read [class*="gradient"] {
+  box-shadow: 0 4px 16px -6px rgb(15 23 42 / 0.1) !important;
+}

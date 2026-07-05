@@ -7,8 +7,14 @@ import { useIsaAudio } from "@/lib/hooks/useIsaAudio";
 import { useModuleN8n } from "@/lib/hooks/useModuleN8n";
 import type { ModuleStatus } from "@/types/module";
 
+interface SpeechRecognitionResultLike {
+  isFinal: boolean;
+  [index: number]: { transcript: string };
+}
+
 interface SpeechRecognitionEventLike {
-  results: ArrayLike<{ [index: number]: { transcript: string } }>;
+  resultIndex: number;
+  results: ArrayLike<SpeechRecognitionResultLike>;
 }
 
 interface SpeechRecognitionLike {
@@ -20,6 +26,7 @@ interface SpeechRecognitionLike {
   onend: (() => void) | null;
   start: () => void;
   stop: () => void;
+  abort: () => void;
 }
 
 function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
@@ -34,56 +41,84 @@ function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
 export function useSpeechLogic() {
   const { toast } = useToast();
   const { submit } = useModuleN8n("speech");
-  const { speak, isSpeaking, stop: stopSpeaking } = useIsaAudio();
+  const { speak, isSpeaking, isLoadingTts, lastError, unlockAudio, stop: stopSpeaking } =
+    useIsaAudio();
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const transcriptRef = useRef("");
+  const conversationListeningRef = useRef(false);
 
   const [status, setStatus] = useState<ModuleStatus>("idle");
-  const [transcript, setTranscript] = useState("");
+  const [messageDraft, setMessageDraft] = useState("");
+  const [conversationTranscript, setConversationTranscript] = useState("");
+  const [liveConversationText, setLiveConversationText] = useState("");
   const [output, setOutput] = useState("");
   const [isaResponse, setIsaResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
+  const [isSpeakingForMe, setIsSpeakingForMe] = useState(false);
 
   useEffect(() => {
-    return () => recognitionRef.current?.stop();
+    return () => {
+      conversationListeningRef.current = false;
+      recognitionRef.current?.abort();
+    };
   }, []);
 
-  const processSpeech = useCallback(
+  const speakForMe = useCallback(
     async (text: string) => {
-      if (!text.trim()) return;
+      const trimmed = text.trim();
+      if (!trimmed) {
+        toast({
+          title: "Sin mensaje",
+          description: "Escribe o selecciona una frase antes de hablar.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      setStatus("processing");
+      setMessageDraft(trimmed);
+      setOutput(trimmed);
       setError(null);
+      setIsSpeakingForMe(true);
+      setStatus("processing");
+      setIsaResponse(`Isabel habla por ti: «${trimmed}»`);
+      unlockAudio();
 
       try {
-        const response = await submit({
-          event: "speech.process",
-          data: { transcript: text, input: text },
-        });
-
-        const result = response.output ?? "";
-        setOutput(result);
-        setIsaResponse(`ISA respondió: ${result}`);
+        await speak(trimmed, { useElevenLabs: true });
         setStatus("active");
 
-        void speak(result, { useElevenLabs: response.elevenLabsAvailable !== false });
+        void submit({
+          event: "speech.speak",
+          data: { transcript: trimmed, input: trimmed },
+        }).catch(() => {
+          /* n8n opcional */
+        });
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Error al procesar el habla";
+          err instanceof Error ? err.message : "No se pudo reproducir la voz";
         setError(message);
         setStatus("error");
         toast({
-          title: "Error en Habla",
+          title: "Error al hablar",
           description: message,
           variant: "destructive",
         });
+      } finally {
+        setIsSpeakingForMe(false);
       }
     },
-    [submit, toast, speak]
+    [speak, submit, toast, unlockAudio]
   );
 
-  const startListening = useCallback(() => {
+  const stopConversationListen = useCallback(() => {
+    conversationListeningRef.current = false;
+    recognitionRef.current?.stop();
+    setIsListening(false);
+    setLiveConversationText("");
+    setStatus("idle");
+  }, []);
+
+  const startConversationListen = useCallback(async () => {
     const SpeechRecognition = getSpeechRecognition();
     if (!SpeechRecognition) {
       const message = "Tu navegador no soporta reconocimiento de voz";
@@ -93,77 +128,118 @@ export function useSpeechLogic() {
       return;
     }
 
+    if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((track) => track.stop());
+      } catch {
+        const message = "Permiso de micrófono denegado. Actívalo en el navegador.";
+        setError(message);
+        setStatus("error");
+        toast({ title: "Micrófono bloqueado", description: message, variant: "destructive" });
+        return;
+      }
+    }
+
+    stopConversationListen();
+    unlockAudio();
     setError(null);
     setStatus("active");
+    setIsaResponse("Escuchando la respuesta de la otra persona…");
 
     const recognition = new SpeechRecognition();
     recognition.lang = "es-ES";
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
 
     recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      transcriptRef.current = text;
-      setTranscript(text);
+      if (!conversationListeningRef.current) return;
+
+      let text = "";
+      for (let i = 0; i < event.results.length; i++) {
+        text += event.results[i][0].transcript;
+      }
+      text = text.trim();
+      setLiveConversationText(text);
+      if (text) {
+        setConversationTranscript(text);
+      }
     };
 
     recognition.onerror = (event) => {
-      if (event.error !== "aborted") {
-        setError(`Error de micrófono: ${event.error}`);
-        setStatus("error");
+      if (event.error === "aborted" || event.error === "no-speech") {
+        stopConversationListen();
+        return;
       }
-      setIsListening(false);
+      setError(`Error de micrófono: ${event.error}`);
+      setStatus("error");
+      stopConversationListen();
     };
 
     recognition.onend = () => {
-      setIsListening(false);
-      const text = transcriptRef.current;
-      if (text) {
-        void processSpeech(text);
+      if (conversationListeningRef.current) {
+        try {
+          recognition.start();
+        } catch {
+          stopConversationListen();
+        }
+        return;
       }
+      setIsListening(false);
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
-    setIsaResponse("Escuchando tu voz…");
-  }, [processSpeech, toast]);
+    conversationListeningRef.current = true;
 
-  const stopListening = useCallback(() => {
-    recognitionRef.current?.stop();
-    setIsListening(false);
-  }, []);
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch {
+      conversationListeningRef.current = false;
+      setError("No se pudo iniciar el micrófono");
+      setStatus("error");
+    }
+  }, [stopConversationListen, toast, unlockAudio]);
 
-  const submitText = useCallback(
-    async (text: string) => {
-      transcriptRef.current = text;
-      setTranscript(text);
-      await processSpeech(text);
-    },
-    [processSpeech]
-  );
+  const clearMessage = useCallback(() => {
+    setMessageDraft("");
+    setOutput("");
+    setIsaResponse(null);
+    setError(null);
+    if (!isListening) setStatus("idle");
+  }, [isListening]);
 
   const clearSession = useCallback(() => {
-    transcriptRef.current = "";
-    setTranscript("");
+    stopConversationListen();
+    stopSpeaking();
+    setMessageDraft("");
+    setConversationTranscript("");
+    setLiveConversationText("");
     setOutput("");
     setIsaResponse(null);
     setError(null);
     setStatus("idle");
-  }, []);
+  }, [stopConversationListen, stopSpeaking]);
+
+  const isBusy = isSpeakingForMe || isLoadingTts || status === "processing";
 
   return {
     status,
-    transcript,
+    messageDraft,
+    setMessageDraft,
+    conversationTranscript,
+    liveConversationText,
     output,
     isaResponse,
     error,
     isListening,
-    isSpeaking,
-    startListening,
-    stopListening,
-    stopSpeaking,
-    submitText,
+    isSpeaking: isSpeaking || isSpeakingForMe,
+    isBusy,
+    lastAudioError: lastError,
+    speakForMe,
+    startConversationListen,
+    stopConversationListen,
+    clearMessage,
     clearSession,
   };
-}
+};

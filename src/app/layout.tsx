@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import {
+  Atkinson_Hyperlegible,
+  Geist_Mono,
+  Lexend,
+  Plus_Jakarta_Sans,
+} from "next/font/google";
 
 import { Layout } from "@/components/layout";
 import { Providers } from "@/components/Providers";
@@ -15,6 +20,18 @@ const plusJakarta = Plus_Jakarta_Sans({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const atkinsonHyperlegible = Atkinson_Hyperlegible({
+  variable: "--font-hyperlegible",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
+
+const lexend = Lexend({
+  variable: "--font-lexend",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -60,7 +77,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${plusJakarta.variable} ${geistMono.variable} h-full font-sans`}
+      className={`${plusJakarta.variable} ${geistMono.variable} ${atkinsonHyperlegible.variable} ${lexend.variable} h-full font-sans`}
     >
       <body className="flex min-h-full flex-col">
         <div id="a11y-root" className="flex min-h-full flex-1 flex-col">

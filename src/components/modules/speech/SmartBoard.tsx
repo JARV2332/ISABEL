@@ -58,7 +58,7 @@ export function SmartBoard({
 
   const exportAndRecognize = useCallback(async () => {
     if (!canvasRef.current || !hasStrokesRef.current) {
-      setError("Escribe algo en la pizarra antes de tocar «Hablar».");
+      setError("Escribe algo en la pizarra antes de tocar «Hablar por mí».");
       return;
     }
 
@@ -88,7 +88,7 @@ export function SmartBoard({
       if (!data.text?.trim()) {
         setError(
           data.message ??
-            "Seguimos intentando leer tu trazo. Prueba «Hablar» o escribe más grande."
+            "Seguimos intentando leer tu trazo. Prueba «Hablar por mí» o escribe más grande."
         );
         return;
       }
@@ -175,9 +175,9 @@ export function SmartBoard({
           </span>
           Pizarra inteligente
         </h2>
-        <p className="text-lg leading-relaxed text-[var(--module-muted-fg)]">
-          Escribe tu frase completa con el dedo o lápiz. Cuando termines, toca
-          «Hablar» para que ISA la lea.
+        <p className="speech-body text-lg leading-relaxed text-[var(--module-muted-fg)]">
+          Escribe tu frase con el dedo o lápiz. Cuando termines, toca «Hablar por
+          mí» para que Isabel la lea.
         </p>
       </div>
 
@@ -310,7 +310,7 @@ export function SmartBoard({
           type="button"
           onClick={handleSpeak}
           disabled={isBusy || !hasStrokes}
-          aria-label="Hablar — enviar escritura a ISA"
+          aria-label="Hablar por mí — enviar escritura a Isabel"
           className={cn(
             "human-press flex size-28 flex-col items-center justify-center gap-1 rounded-full text-xl font-extrabold text-white shadow-2xl transition-all disabled:opacity-60",
             scanMode &&
@@ -325,7 +325,7 @@ export function SmartBoard({
           }}
         >
           <Volume2 className="size-10" aria-hidden="true" />
-          Hablar
+          Hablar por mí
         </button>
 
         <button
@@ -334,8 +334,8 @@ export function SmartBoard({
           aria-pressed={scanMode}
           aria-label={
             scanMode
-              ? "Desactivar modo escaneo interruptor"
-              : "Activar modo escaneo interruptor"
+              ? "Desactivar selección automática"
+              : "Activar selección automática de botones"
           }
           className={cn(
             "human-press flex min-h-20 min-w-20 flex-col items-center justify-center gap-1 rounded-full border-2 border-slate-300 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-800 shadow-lg dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100",
@@ -345,7 +345,7 @@ export function SmartBoard({
           )}
         >
           <Scan className="size-7" aria-hidden="true" />
-          {scanMode ? "Escaneo ON" : "Interruptor"}
+          {scanMode ? "Selección ON" : "Selección automática"}
         </button>
       </div>
 
@@ -357,12 +357,12 @@ export function SmartBoard({
           role="status"
         >
           <p className="text-lg font-bold text-pink-800 dark:text-pink-200">
-            Modo interruptor — resaltado:{" "}
+            Selección automática — resaltado:{" "}
             {scanTarget === "clear"
               ? "Limpiar"
               : scanTarget === "speak"
-                ? "Hablar"
-                : "Interruptor"}
+                ? "Hablar por mí"
+                : "Selección automática"}
           </p>
           <p className="mt-1 text-base text-pink-700/80 dark:text-pink-300/80">
             Pulsa <kbd className="rounded bg-white px-2 py-0.5 font-mono">Espacio</kbd>{" "}
