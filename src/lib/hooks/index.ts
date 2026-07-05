@@ -5,6 +5,7 @@ export { useHearingLogic } from "./useHearingLogic";
 export { useSpeechLogic } from "./useSpeechLogic";
 export { useVisualLogic } from "./useVisualLogic";
 export { useMobilityLogic, PICTOGRAMS } from "./useMobilityLogic";
+export { useAccessiblePlaces } from "./useAccessiblePlaces";
 export { useSignLanguage } from "./useSignLanguage";
 export { useSignCapture } from "./useSignCapture";
 export { usePerformsAvatar } from "./usePerformsAvatar";

@@ -57,6 +57,38 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["iot_events"]["Insert"]>;
         Relationships: [];
       };
+      accessibility_reports: {
+        Row: {
+          id: string;
+          place_id: string;
+          place_name: string;
+          category: string;
+          latitude: number;
+          longitude: number;
+          address: string | null;
+          phone: string | null;
+          rating: string;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          place_id: string;
+          place_name: string;
+          category: string;
+          latitude: number;
+          longitude: number;
+          address?: string | null;
+          phone?: string | null;
+          rating: string;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["accessibility_reports"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

@@ -3,7 +3,7 @@ import type { ModuleInterface } from "@/types/module";
 export const mobilityModule: ModuleInterface = {
   id: "mobility",
   name: "Movilidad",
-  description: "Asistencia para personas con discapacidad motriz",
+  description: "Lugares accesibles en Guatemala, rutas, transporte y comunicación por pictogramas",
   status: "idle",
   route: "/modulos/movilidad",
   enabled: true,
