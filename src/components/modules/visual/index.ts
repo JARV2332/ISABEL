@@ -3,7 +3,7 @@ import type { ModuleInterface } from "@/types/module";
 export const visualModule: ModuleInterface = {
   id: "visual",
   name: "Visual",
-  description: "Asistencia para personas con discapacidad visual",
+  description: "Orientación en espacios físicos, lectura de texto y PDF en voz alta",
   status: "idle",
   route: "/modulos/visual",
   enabled: true,

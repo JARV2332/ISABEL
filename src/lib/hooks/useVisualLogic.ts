@@ -48,7 +48,15 @@ export function useVisualLogic() {
 
   /** Lee el texto tal cual, sin resumir con IA. */
   const processText = useCallback(
-    async (text: string, options?: { fromPdf?: boolean }) => {
+    async (
+      text: string,
+      options?: {
+        fromPdf?: boolean;
+        spaceId?: string;
+        sectionId?: string;
+        silent?: boolean;
+      }
+    ) => {
       const trimmed = text.trim();
       if (!trimmed) {
         toast({
@@ -67,9 +75,11 @@ export function useVisualLogic() {
         const chunks = splitTextForTts(trimmed);
         setOutput(trimmed);
         setIsaResponse(
-          options?.fromPdf
-            ? `Leyendo PDF completo (${trimmed.length.toLocaleString("es-GT")} caracteres).`
-            : `Leyendo texto completo (${trimmed.length.toLocaleString("es-GT")} caracteres).`
+          options?.spaceId
+            ? `Orientación en espacio: ${options.spaceId.replace(/-/g, " ")}.`
+            : options?.fromPdf
+              ? `Leyendo PDF completo (${trimmed.length.toLocaleString("es-GT")} caracteres).`
+              : `Leyendo texto completo (${trimmed.length.toLocaleString("es-GT")} caracteres).`
         );
         setStatus("active");
 
@@ -83,16 +93,22 @@ export function useVisualLogic() {
         }
 
         setReadProgress(null);
-        logActivity(
-          trimmed,
-          options?.fromPdf ? "visual.pdf-read" : "visual.read-aloud"
-        );
+        const event = options?.spaceId
+          ? "visual.space-guide"
+          : options?.fromPdf
+            ? "visual.pdf-read"
+            : "visual.read-aloud";
+        logActivity(trimmed, event);
 
-        toast({
-          title: options?.fromPdf ? "PDF leído" : "Texto leído",
-          description: "ISA leyó el contenido completo en voz alta.",
-          variant: "success",
-        });
+        if (!options?.silent) {
+          toast({
+            title: options?.spaceId ? "Espacio descrito" : options?.fromPdf ? "PDF leído" : "Texto leído",
+            description: options?.spaceId
+              ? "ISA describió este espacio en voz alta."
+              : "ISA leyó el contenido completo en voz alta.",
+            variant: "success",
+          });
+        }
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Error al leer en voz alta";
