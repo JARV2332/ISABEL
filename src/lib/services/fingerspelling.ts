@@ -5,7 +5,9 @@
 
 import type { SignLanguageCode, SignLanguageSequence, SignUnit } from "@/types/sign-language";
 
-const LETTERS_BASE_PATH = "/signs/lsm/letters";
+import { withBasePath } from "@/lib/base-path";
+
+const LETTERS_BASE_PATH = withBasePath("/signs/lsm/letters");
 
 /** Letras del abecedario manual LSM (español) */
 const LSM_ALPHABET = "abcdefghijklmnñopqrstuvwxyz";

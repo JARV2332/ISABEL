@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useToast } from "@/components/ui/toast";
+import { withBasePath } from "@/lib/base-path";
 import {
   SEARCH_RADIUS_METERS,
   SEARCH_RADIUS_KM,
@@ -96,7 +97,7 @@ export function useAccessiblePlaces() {
           category: cat,
           radius: String(SEARCH_RADIUS_METERS),
         });
-        const response = await fetch(`/api/places/nearby?${params}`, {
+        const response = await fetch(withBasePath(`/api/places/nearby?${params}`), {
           cache: "no-store",
         });
         const data = (await response.json()) as {
@@ -180,7 +181,7 @@ export function useAccessiblePlaces() {
       saveLocalReport(report);
 
       try {
-        const response = await fetch("/api/places/report", {
+        const response = await fetch(withBasePath("/api/places/report"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(report),

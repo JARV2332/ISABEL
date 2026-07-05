@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useToast } from "@/components/ui/toast";
+import { withBasePath } from "@/lib/base-path";
 import { useIsaAudio } from "@/lib/hooks/useIsaAudio";
 import { useModuleN8n } from "@/lib/hooks/useModuleN8n";
 import { textToFingerspellingSequence } from "@/lib/services/fingerspelling";
@@ -328,7 +329,7 @@ export function useHearingLogic() {
 
       void requestTts(finalText);
 
-      void fetch("/api/interactions/log", {
+      void fetch(withBasePath("/api/interactions/log"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

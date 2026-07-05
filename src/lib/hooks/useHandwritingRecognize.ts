@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 
+import { withBasePath } from "@/lib/base-path";
 import {
   enhanceHandwritingImage,
   prepareHandwritingImage,
@@ -17,7 +18,7 @@ async function callHandwritingApi(
   imageBase64: string,
   context?: string
 ): Promise<{ text: string | null; error?: string }> {
-  const response = await fetch("/api/handwriting", {
+  const response = await fetch(withBasePath("/api/handwriting"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

@@ -2,6 +2,8 @@
 
 import { useCallback, useRef, useState } from "react";
 
+import { withBasePath } from "@/lib/base-path";
+
 /**
  * Reproduce voz ISA vía POST /api/tts (ElevenLabs en servidor).
  */
@@ -85,7 +87,7 @@ export function useIsaAudio() {
       setLastError(null);
 
       try {
-        const response = await fetch("/api/tts", {
+        const response = await fetch(withBasePath("/api/tts"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: text.trim() }),

@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 
 import { useToast } from "@/components/ui/toast";
+import { withBasePath } from "@/lib/base-path";
 import { useIsaAudio } from "@/lib/hooks/useIsaAudio";
 import { useModuleN8n } from "@/lib/hooks/useModuleN8n";
 import { extractTextFromPdf } from "@/lib/services/pdf-extract";
@@ -31,7 +32,7 @@ export function useVisualLogic() {
         data: { input: text, transcript: text },
       }).catch(() => {});
 
-      void fetch("/api/interactions/log", {
+      void fetch(withBasePath("/api/interactions/log"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -3,6 +3,8 @@
  * Flujo: Módulo → webhook n8n → respuesta procesada (texto/voz).
  */
 
+import { withBasePath } from "@/lib/base-path";
+
 export interface N8nConfig {
   baseUrl: string;
   apiKey?: string;
@@ -80,7 +82,7 @@ export const n8nService: N8nService = {
     const isBrowser = typeof window !== "undefined";
 
     if (isBrowser) {
-      const response = await fetch(`/api/n8n/${webhookId}`, {
+      const response = await fetch(withBasePath(`/api/n8n/${webhookId}`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

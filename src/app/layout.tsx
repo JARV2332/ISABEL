@@ -36,7 +36,10 @@ const lexend = Lexend({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://isabel-lake.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.NODE_ENV === "production"
+        ? "https://www.edukidsgt.com/ISABEL"
+        : "https://isabel-lake.vercel.app")
   ),
   title: {
     default: "ISABEL — Estación de Accesibilidad",

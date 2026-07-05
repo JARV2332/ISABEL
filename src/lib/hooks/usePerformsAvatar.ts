@@ -7,6 +7,7 @@ import {
   sequenceToBml,
   PERFORMS_PLAYER_PATH,
 } from "@/lib/services/performs-bml";
+import { withBasePath } from "@/lib/base-path";
 import type { SignLanguageSequence, SignUnit } from "@/types/sign-language";
 
 const LOAD_TIMEOUT_MS = 28000;
@@ -16,7 +17,7 @@ interface UsePerformsAvatarOptions {
 }
 
 export function usePerformsAvatar(options: UsePerformsAvatarOptions = {}) {
-  const playerPath = options.playerPath ?? PERFORMS_PLAYER_PATH;
+  const playerPath = options.playerPath ?? withBasePath(PERFORMS_PLAYER_PATH);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const loadTimeoutRef = useRef<number | null>(null);
   const [isReady, setIsReady] = useState(false);

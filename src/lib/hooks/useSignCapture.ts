@@ -8,6 +8,7 @@ import {
 } from "@mediapipe/tasks-vision";
 
 import { useToast } from "@/components/ui/toast";
+import { withBasePath } from "@/lib/base-path";
 import { useIsaAudio } from "@/lib/hooks/useIsaAudio";
 import { useModuleN8n } from "@/lib/hooks/useModuleN8n";
 import { signLanguageService } from "@/lib/services/sign-language";
@@ -257,7 +258,7 @@ export function useSignCapture() {
   const interpretWithVision = useCallback(
     async (frame: string, localHint?: string) => {
       try {
-        const response = await fetch("/api/sign-recognize", {
+        const response = await fetch(withBasePath("/api/sign-recognize"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ frame, format: "jpeg", localHint }),
