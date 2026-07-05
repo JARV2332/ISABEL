@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { enrichIsaResponse } from "@/lib/services/isa-orchestrator";
 import type { N8nWebhookPayload, N8nWebhookResponse } from "@/lib/services/n8n";
+import { notifyN8nEvent } from "@/lib/services/n8n-notify";
 import { signLanguageService } from "@/lib/services/sign-language";
 import { signSpeakService } from "@/lib/services/sign-speak";
 
@@ -129,6 +130,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
         response.device?.led,
         { event: payload.event, output }
       );
+
+      if (payload.data.action === "emergency") {
+        void notifyN8nEvent("mobility-events", {
+          event: "iot.emergency",
+          moduleId: "iot",
+          data: {
+            action: payload.data.action,
+            output,
+            led: response.device?.led,
+          },
+        });
+      }
     } else {
       await logInteraction({
         moduleId,

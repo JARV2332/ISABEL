@@ -4,8 +4,10 @@
 
 ### n8n (Automatización) ✅
 - Proxy seguro: `src/app/api/n8n/[moduleId]/route.ts`
-- 5 webhooks: hearing, speech, visual, mobility, **iot**
-- Workflows importables en `docs/n8n-workflows/`
+- **6 webhooks:** hearing, speech, visual, mobility, iot, **mobility-events**
+- Notificaciones async: `src/lib/services/n8n-notify.ts`
+- Workflows PRO importables en `docs/n8n-workflows/`
+- Guía extendida: **[docs/N8N-ROADMAP.md](./N8N-ROADMAP.md)**
 - Logging a Supabase por cada interacción
 
 ### ElevenLabs (Voz) ✅

@@ -1,44 +1,54 @@
 # Workflows de ejemplo para n8n
 
-Importa estos workflows en n8n: **Workflows → Import from file**
+Importa en n8n: **Workflows → Import from file**
 
-## hearing-prueba.json
+Guía completa de uso: **[N8N-ROADMAP.md](../N8N-ROADMAP.md)**
 
-Workflow mínimo para probar la conexión con ISABEL (módulo Audición).
+## Workflows PRO (recomendados para buildathon)
 
-## hearing-pro.json
+| Archivo | Webhook | Descripción |
+|---------|---------|-------------|
+| `hearing-pro.json` | `hearing` | OpenAI + ElevenLabs |
+| `speech-pro.json` | `speech` | OpenAI ISA módulo Habla |
+| `visual-pro.json` | `visual` | OpenAI describe texto |
+| `mobility-pro.json` | `mobility` | OpenAI + pictogramas |
+| `iot-emergency-pro.json` | `iot` | IF emergencia → LED rojo |
+| **`mobility-events-pro.json`** | **`mobility-events`** | Eventos async: búsqueda lugares, reportes, emergencia |
 
-Workflow PRO con nodos OpenAI + ElevenLabs (requiere credenciales en n8n).
+## Workflows de prueba (mínimos)
 
-## iot-prueba.json
+| Archivo | Webhook |
+|---------|---------|
+| `hearing-prueba.json` | `hearing` |
+| `mobility-prueba.json` | `mobility` |
+| `iot-prueba.json` | `iot` |
 
-Webhook `/iot` para panel IoT simulado en la home.
+## Configuración
 
-**Path del webhook:** `hearing`
+```env
+N8N_WEBHOOK_BASE_URL=https://tu-cuenta.app.n8n.cloud
+```
 
-**Respuesta:** JSON con texto y secuencia de señas LSM.
+Sin barra final. ISABEL llama `{BASE}/webhook/{path}`.
 
-## Cómo importar
+## Eventos async (mobility-events)
 
-1. En n8n: menú **⋯** → **Import from file**
-2. Selecciona el archivo `.json` de esta carpeta
-3. Activa el workflow (toggle verde)
-4. Copia la Production URL del nodo Webhook
-5. Configura `N8N_WEBHOOK_BASE_URL` en `.env.local`
+ISABEL envía automáticamente (no bloquea al usuario):
 
-## Estructura mínima de respuesta
+- `mobility.places-search` — búsqueda de lugares accesibles
+- `mobility.place-report` — reporte comunitario de accesibilidad
+- `iot.emergency` — botón emergencia
 
-Todos los workflows deben responder con JSON:
+Añade nodos Gmail/Slack después del Switch en `mobility-events-pro.json`.
+
+## Respuesta mínima (webhooks síncronos)
 
 ```json
 {
-  "output": "Texto para mostrar al usuario",
-  "avatarVideoUrl": "https://opcional-video-sign-speak.mp4",
-  "signSequence": [
-    { "gloss": "HOLA", "label": "Hola", "icon": "👋" }
-  ],
+  "output": "Texto para el usuario",
+  "signSequence": [{ "gloss": "HOLA", "label": "Hola", "icon": "👋" }],
   "signLanguage": "LSM"
 }
 ```
 
-Ver guía completa en [N8N-SETUP.md](../N8N-SETUP.md).
+Ver [N8N-SETUP.md](../N8N-SETUP.md) para Sign-Speak y más detalle.

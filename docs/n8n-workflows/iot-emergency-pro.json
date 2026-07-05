@@ -1,0 +1,122 @@
+{
+  "name": "ISABEL - IoT Emergencia PRO",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "iot",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-iot",
+      "name": "Webhook IoT",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.data.action }}",
+              "rightValue": "emergency",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-emergency",
+      "name": "¿Emergencia?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "led-red",
+              "name": "led",
+              "value": "red",
+              "type": "string"
+            },
+            {
+              "id": "msg-emergency",
+              "name": "deviceMessage",
+              "value": "Emergencia activada — alerta enviada vía n8n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-emergency",
+      "name": "Estado emergencia",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [720, 200]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "led-normal",
+              "name": "led",
+              "value": "={{ $json.data.action === 'light-on' ? 'yellow' : 'green' }}",
+              "type": "string"
+            },
+            {
+              "id": "msg-normal",
+              "name": "deviceMessage",
+              "value": "=Acción registrada: {{ $json.data.action }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-normal",
+      "name": "Estado normal",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [720, 420]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ JSON.stringify('Acción IoT: ' + ($('Webhook IoT').item.json.data.action || 'ping')) }},\n  \"device\": {\n    \"connected\": true,\n    \"led\": {{ JSON.stringify($json.led || 'green') }},\n    \"message\": {{ JSON.stringify($json.deviceMessage || 'OK') }}\n  }\n}",
+        "options": {}
+      },
+      "id": "respond-iot",
+      "name": "Responder IoT",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [980, 300]
+    }
+  ],
+  "connections": {
+    "Webhook IoT": {
+      "main": [[{ "node": "¿Emergencia?", "type": "main", "index": 0 }]]
+    },
+    "¿Emergencia?": {
+      "main": [
+        [{ "node": "Estado emergencia", "type": "main", "index": 0 }],
+        [{ "node": "Estado normal", "type": "main", "index": 0 }]
+      ]
+    },
+    "Estado emergencia": {
+      "main": [[{ "node": "Responder IoT", "type": "main", "index": 0 }]]
+    },
+    "Estado normal": {
+      "main": [[{ "node": "Responder IoT", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

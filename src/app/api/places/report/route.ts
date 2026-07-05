@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { submitPlaceReport } from "@/lib/services/accessible-places";
 import { logInteraction } from "@/lib/services/interactions";
+import { notifyN8nEvent } from "@/lib/services/n8n-notify";
 import type { PlaceReportInput } from "@/types/accessible-places";
 
 /** POST /api/places/report — reporte comunitario de accesibilidad */
@@ -34,6 +35,12 @@ export async function POST(request: NextRequest) {
         latitude: body.latitude,
         longitude: body.longitude,
       },
+    });
+
+    void notifyN8nEvent("mobility-events", {
+      event: "mobility.place-report",
+      moduleId: "mobility",
+      data: { ...body },
     });
 
     return NextResponse.json({

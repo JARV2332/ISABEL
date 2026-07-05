@@ -1,0 +1,64 @@
+{
+  "name": "ISABEL - Habla PRO (OpenAI + ElevenLabs)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "speech",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-speech",
+      "name": "Webhook Habla",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": "gpt-4o-mini",
+        "prompt": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "Eres ISA en el módulo Habla. Responde en español, breve y empático a quien tiene dificultad para hablar."
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.data.input || $json.data.transcript || 'Hola' }}"
+            }
+          ]
+        }
+      },
+      "id": "openai-speech",
+      "name": "OpenAI ISA",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ JSON.stringify($json.message?.content || $json.data?.input || 'Hola') }},\n  \"message\": \"Procesado por n8n + OpenAI\"\n}",
+        "options": {}
+      },
+      "id": "respond-speech",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [720, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Habla": {
+      "main": [[{ "node": "OpenAI ISA", "type": "main", "index": 0 }]]
+    },
+    "OpenAI ISA": {
+      "main": [[{ "node": "Responder", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

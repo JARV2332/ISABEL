@@ -1,0 +1,65 @@
+{
+  "name": "ISABEL - Movilidad PRO (OpenAI + pictogramas)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mobility",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-mobility",
+      "name": "Webhook Movilidad",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": "gpt-4o-mini",
+        "prompt": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "Eres ISA, asistente de accesibilidad. Convierte pictogramas/mensajes cortos en frases naturales, cálidas y breves en español para personas con discapacidad motriz."
+            },
+            {
+              "role": "user",
+              "content": "={{ 'Mensaje: ' + ($json.data.input || '') + '\\nPictogramas: ' + JSON.stringify($json.data.pictograms || []) }}"
+            }
+          ]
+        }
+      },
+      "id": "openai-mobility",
+      "name": "OpenAI ISA",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [480, 300],
+      "notes": "Requiere credencial OpenAI"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ JSON.stringify($json.message?.content || $json.data?.input || 'Mensaje recibido') }},\n  \"signLanguage\": \"LSM\",\n  \"message\": \"Procesado por n8n + OpenAI\"\n}",
+        "options": {}
+      },
+      "id": "respond-mobility",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [720, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Movilidad": {
+      "main": [[{ "node": "OpenAI ISA", "type": "main", "index": 0 }]]
+    },
+    "OpenAI ISA": {
+      "main": [[{ "node": "Responder", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

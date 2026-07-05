@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { findNearbyAccessiblePlaces } from "@/lib/services/accessible-places";
 import { logInteraction } from "@/lib/services/interactions";
+import { notifyN8nEvent } from "@/lib/services/n8n-notify";
 import { SEARCH_RADIUS_METERS } from "@/lib/geo/places-utils";
 import type { PlaceCategory } from "@/types/accessible-places";
 
@@ -56,6 +57,19 @@ export async function GET(request: NextRequest) {
         locationLabel: result.locationLabel,
         searchRadiusKm: result.searchRadiusKm,
         hasCuratedSeed: result.hasCuratedSeed,
+      },
+    });
+
+    void notifyN8nEvent("mobility-events", {
+      event: "mobility.places-search",
+      moduleId: "mobility",
+      data: {
+        latitude: lat,
+        longitude: lng,
+        category,
+        locationLabel: result.locationLabel,
+        placesFound: result.places.length,
+        searchRadiusKm: result.searchRadiusKm,
       },
     });
 

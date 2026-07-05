@@ -48,6 +48,8 @@ export interface N8nService {
 
 function getBaseUrl(): string | undefined {
   return (
+    process.env.N8N_WEBHOOK_BASE_URL ??
+    process.env.NEXT_PUBLIC_N8N_WEBHOOK_BASE_URL ??
     process.env.NEXT_PUBLIC_N8N_BASE_URL ??
     process.env.N8N_BASE_URL ??
     undefined

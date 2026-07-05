@@ -1,0 +1,199 @@
+{
+  "name": "ISABEL - Eventos Movilidad (lugares, reportes, emergencia)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mobility-events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-events",
+      "name": "Webhook Eventos",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event }}",
+                    "rightValue": "mobility.places-search",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "places-search"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event }}",
+                    "rightValue": "mobility.place-report",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "place-report"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event }}",
+                    "rightValue": "iot.emergency",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "emergency"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "switch-event",
+      "name": "Tipo de evento",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "log-places",
+              "name": "summary",
+              "value": "=Búsqueda de lugares: {{ $json.data.locationLabel || 'ubicación' }} — {{ $json.data.placesFound || 0 }} resultados en {{ $json.data.searchRadiusKm || 15 }} km",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-places-log",
+      "name": "Log búsqueda",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [760, 140]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.data.rating }}",
+              "rightValue": "inaccessible",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-inaccessible",
+      "name": "¿No accesible?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [760, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "alert-report",
+              "name": "alertMessage",
+              "value": "=⚠️ Reporte accesibilidad: {{ $json.data.placeName }} marcado como NO ACCESIBLE. Notas: {{ $json.data.notes || 'sin notas' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-report-alert",
+      "name": "Alerta reporte",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1020, 260]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "alert-emergency",
+              "name": "alertMessage",
+              "value": "=🚨 EMERGENCIA ISABEL — Botón de emergencia activado en estación. LED: {{ $json.data.led || 'rojo' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-emergency",
+      "name": "Alerta emergencia",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [760, 480]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true, \"event\": {{ JSON.stringify($('Webhook Eventos').item.json.event) }}, \"processed\": true }",
+        "options": {}
+      },
+      "id": "respond-ok",
+      "name": "Responder OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1280, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Eventos": {
+      "main": [[{ "node": "Tipo de evento", "type": "main", "index": 0 }]]
+    },
+    "Tipo de evento": {
+      "main": [
+        [{ "node": "Log búsqueda", "type": "main", "index": 0 }],
+        [{ "node": "¿No accesible?", "type": "main", "index": 0 }],
+        [{ "node": "Alerta emergencia", "type": "main", "index": 0 }]
+      ]
+    },
+    "Log búsqueda": {
+      "main": [[{ "node": "Responder OK", "type": "main", "index": 0 }]]
+    },
+    "¿No accesible?": {
+      "main": [
+        [{ "node": "Alerta reporte", "type": "main", "index": 0 }],
+        [{ "node": "Responder OK", "type": "main", "index": 0 }]
+      ]
+    },
+    "Alerta reporte": {
+      "main": [[{ "node": "Responder OK", "type": "main", "index": 0 }]]
+    },
+    "Alerta emergencia": {
+      "main": [[{ "node": "Responder OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}
