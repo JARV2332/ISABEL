@@ -6,14 +6,21 @@ import {
   BookOpen,
   Globe,
   Palette,
+  RotateCcw,
   Square,
   Volume2,
   VolumeX,
   X,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 
 import { useAccessibility } from "@/components/accessibility/AccessibilityProvider";
 import { colorBlindLabel } from "@/lib/accessibility/i18n";
+import {
+  DEFAULT_TEXT_ZOOM,
+  TEXT_ZOOM_LEVELS,
+} from "@/lib/accessibility/text-zoom";
 import {
   findReadableTarget,
   getElementSpeechText,
@@ -78,11 +85,15 @@ export function FloatingAccessibilityDock() {
     locale,
     immersiveReader,
     colorBlindMode,
+    textZoom,
     isSpeaking,
     labels,
     toggleImmersiveReader,
     toggleLocale,
     cycleColorBlindMode,
+    increaseTextZoom,
+    decreaseTextZoom,
+    resetTextZoom,
     stopReading,
     setIsSpeaking,
   } = useAccessibility();
@@ -156,6 +167,61 @@ export function FloatingAccessibilityDock() {
                 immersiveReader ? labels.readerOff : labels.readerOn
               }
             />
+
+            <div
+              role="group"
+              aria-label={labels.textZoom}
+              className="rounded-2xl bg-white/10 p-3"
+            >
+              <p className="mb-2 text-sm font-bold text-yellow-200">
+                {labels.textZoomLevel.replace("{level}", String(textZoom))}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={decreaseTextZoom}
+                  disabled={textZoom === TEXT_ZOOM_LEVELS[0]}
+                  aria-label={labels.textZoomOut}
+                  className={cn(
+                    "human-press flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 px-3 text-sm font-bold",
+                    "hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400",
+                    "disabled:cursor-not-allowed disabled:opacity-40"
+                  )}
+                >
+                  <ZoomOut className="size-5" aria-hidden="true" />
+                  <span className="sr-only sm:not-sr-only">{labels.textZoomOut}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={resetTextZoom}
+                  disabled={textZoom === DEFAULT_TEXT_ZOOM}
+                  aria-label={labels.textZoomReset}
+                  className={cn(
+                    "human-press flex min-h-12 min-w-12 items-center justify-center rounded-xl bg-white/10 px-3",
+                    "hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400",
+                    "disabled:cursor-not-allowed disabled:opacity-40"
+                  )}
+                >
+                  <RotateCcw className="size-5" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={increaseTextZoom}
+                  disabled={
+                    textZoom === TEXT_ZOOM_LEVELS[TEXT_ZOOM_LEVELS.length - 1]
+                  }
+                  aria-label={labels.textZoomIn}
+                  className={cn(
+                    "human-press flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 px-3 text-sm font-bold",
+                    "hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400",
+                    "disabled:cursor-not-allowed disabled:opacity-40"
+                  )}
+                >
+                  <ZoomIn className="size-5" aria-hidden="true" />
+                  <span className="sr-only sm:not-sr-only">{labels.textZoomIn}</span>
+                </button>
+              </div>
+            </div>
 
             <DockButton
               onClick={() => void handleReadPage()}

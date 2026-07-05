@@ -264,7 +264,11 @@
   stroke-linejoin: round;
 }
 
-/* ─── Accesibilidad: lector inmersivo y daltónicos ─── */
+/* ─── Accesibilidad: lector inmersivo, zoom de texto y daltónicos ─── */
+
+html[data-a11y-text-zoom]:not([data-a11y-text-zoom="100"]) {
+  scroll-behavior: smooth;
+}
 
 html.a11y-protanopia #a11y-root {
   filter: url(#a11y-protanopia);
