@@ -35,6 +35,7 @@ export function Header() {
       <div className="mx-auto flex h-[4.5rem] max-w-content items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
+          prefetch={false}
           className="flex items-center gap-3 rounded-2xl transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400/40"
           aria-label="ISABEL - Inicio, estación de accesibilidad"
         >
@@ -65,6 +66,7 @@ export function Header() {
                 <li key={module.id}>
                   <Link
                     href={module.route}
+                    prefetch={false}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
                       "inline-flex min-h-12 items-center gap-2 rounded-[1.25rem] px-4 py-2 text-sm font-bold transition-all human-press",
@@ -128,6 +130,7 @@ export function Header() {
                 <li key={module.id}>
                   <Link
                     href={module.route}
+                    prefetch={false}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
                       "flex min-h-14 items-center gap-3 rounded-2xl px-4 py-3 text-base font-bold human-press",

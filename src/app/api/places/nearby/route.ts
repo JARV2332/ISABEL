@@ -6,8 +6,6 @@ import { notifyN8nEvent } from "@/lib/services/n8n-notify";
 import { SEARCH_RADIUS_METERS } from "@/lib/geo/places-utils";
 import type { PlaceCategory } from "@/types/accessible-places";
 
-export const dynamic = "force-dynamic";
-
 const VALID_CATEGORIES = new Set<string>([
   "all",
   "hospital",
@@ -73,7 +71,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        "Cache-Control":
+          "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Error al buscar lugares";
